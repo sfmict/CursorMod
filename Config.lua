@@ -15,6 +15,7 @@ function config:ADDON_LOADED(addonName)
 	if addonName == addon then
 		self:UnregisterEvent("ADDON_LOADED")
 
+		CursorModDB = CursorModDB or {}
 		self.globalDB = CursorModDB
 		self.globalDB.config = self.globalDB.config or {}
 		self.config = self.globalDB.config
@@ -22,11 +23,9 @@ function config:ADDON_LOADED(addonName)
 		self.config.scale = self.config.scale or 1
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
-
 		self.cursor = UIParent.cursorTexture
 
 		self:setCursorSettings()
-		self:openConfig()
 	end
 end
 
