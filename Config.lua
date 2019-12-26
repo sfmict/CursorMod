@@ -90,7 +90,7 @@ config:SetScript("OnShow", function(self)
 	scaleSlider:SetValue(self.config.opacity)
 	scaleSlider.label:SetText(self.config.opacity)
 	scaleSlider:SetScript("OnValueChanged", function(self, value)
-		value = math.floor(value * 100 + .05) / 100
+		value = math.floor(value * 100 + .5) / 100
 		config.config.scale = value
 		config:setCursorSettings()
 		self.label:SetText(value)
