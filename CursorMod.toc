@@ -1,0 +1,9 @@
+## Interface: 80205
+## Title: CursorMod
+## Author: sfmict
+## Version: 1.0
+## Notes: Makes mouse pointer remain on screen while mouselook/steering
+## SavedVariables: CursorModDB
+locales.xml
+CursorMod.lua
+Config.lua
