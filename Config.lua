@@ -186,7 +186,6 @@ InterfaceOptions_AddCategory(config)
 function config:openConfig()
 	if InterfaceOptionsFrameAddOns:IsVisible() and self:IsVisible() then
 		InterfaceOptionsFrame:Hide()
-		self:cancel()
 	else
 		InterfaceOptionsFrame_OpenToCategory(addon)
 		if not InterfaceOptionsFrameAddOns:IsVisible() then
