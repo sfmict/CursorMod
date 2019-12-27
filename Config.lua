@@ -76,7 +76,7 @@ config:SetScript("OnShow", function(self)
 	UIDropDownMenu_SetSelectedValue(sizeCombobox, self.config.size)
 	UIDropDownMenu_SetText(sizeCombobox, self.config.size.."x"..self.config.size)
 
-	-- SIZE
+	-- SCALE
 	local scaleSlider = CreateFrame("SLIDER", nil, self, "OptionsSliderTemplate")
 	scaleSlider:SetSize(400, 17)
 	scaleSlider:SetPoint("TOPLEFT", sizeCombobox, "BOTTOMLEFT", 20, -15)
@@ -87,8 +87,8 @@ config:SetScript("OnShow", function(self)
 	scaleSlider.Text:SetText(L["Scale"])
 	scaleSlider.label = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	scaleSlider.label:SetPoint("LEFT", scaleSlider, "RIGHT", 2, 1)
-	scaleSlider:SetValue(self.config.opacity)
-	scaleSlider.label:SetText(self.config.opacity)
+	scaleSlider:SetValue(self.config.scale)
+	scaleSlider.label:SetText(self.config.scale)
 	scaleSlider:SetScript("OnValueChanged", function(self, value)
 		value = math.floor(value * 100 + .5) / 100
 		config.config.scale = value
@@ -108,8 +108,8 @@ config:SetScript("OnShow", function(self)
 	opacitySlider.Text:SetText(L["Opacity"])
 	opacitySlider.label = opacitySlider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	opacitySlider.label:SetPoint("LEFT", opacitySlider, "RIGHT", 2, 1)
-	opacitySlider:SetValue(self.config.scale)
-	opacitySlider.label:SetText(self.config.scale)
+	opacitySlider:SetValue(self.config.opacity)
+	opacitySlider.label:SetText(self.config.opacity)
 	opacitySlider:SetScript("OnValueChanged", function(self, value)
 		value = math.floor(value * 10 + .5) / 10
 		config.config.opacity = value
