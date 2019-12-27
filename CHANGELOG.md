@@ -1,1 +1,1 @@
-* First version.
+* Fixed opacity and scale settings.
