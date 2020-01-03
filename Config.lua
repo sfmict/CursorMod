@@ -19,15 +19,29 @@ function config:ADDON_LOADED(addonName)
 		self.globalDB = CursorModDB
 		self.globalDB.config = self.globalDB.config or {}
 		self.config = self.globalDB.config
-		self.config.size = self.config.size or 32
+		if not self.config.size then
+			local cursorSizePreferred = GetCVar("cursorSizePreferred")
+			if cursorSizePreferred == 2 then
+				self.config.size = 64
+			elseif cursorSizePreferred == 1 then
+				self.config.size = 48
+			else
+				self.config.size = 32
+			end
+		end
+		if type(self.config.autoScale) ~= "boolean" and not self.config.scale then
+			self.config.autoScale = true
+		end
 		self.config.scale = self.config.scale or 1
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 		self.cursor = UIParent.cursorTexture
 
-		self:setCursorSettings()
+		self:setAutoScale()
 	end
 end
+
+
 
 
 config:SetScript("OnShow", function(self)
@@ -78,6 +92,7 @@ config:SetScript("OnShow", function(self)
 
 	-- SCALE
 	local scaleSlider = CreateFrame("SLIDER", nil, self, "OptionsSliderTemplate")
+	self.scaleSlider = scaleSlider
 	scaleSlider:SetSize(400, 17)
 	scaleSlider:SetPoint("TOPLEFT", sizeCombobox, "BOTTOMLEFT", 20, -15)
 	scaleSlider:SetMinMaxValues(.1, 2)
@@ -87,14 +102,38 @@ config:SetScript("OnShow", function(self)
 	scaleSlider.Text:SetText(L["Scale"])
 	scaleSlider.label = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	scaleSlider.label:SetPoint("LEFT", scaleSlider, "RIGHT", 2, 1)
-	scaleSlider:SetValue(self.config.scale)
-	scaleSlider.label:SetText(self.config.scale)
+	local scale = math.floor(self.config.scale * 100 + .5) / 100
+	scaleSlider:SetValue(scale)
+	scaleSlider.label:SetText(scale)
 	scaleSlider:SetScript("OnValueChanged", function(self, value)
 		value = math.floor(value * 100 + .5) / 100
 		config.config.scale = value
 		config:setCursorSettings()
 		self.label:SetText(value)
 		self:SetValue(value)
+	end)
+	scaleSlider:SetScript("OnDisable", function(self)
+		self.label:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+		self.Text:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+	end)
+	scaleSlider:SetScript("OnEnable", function(self)
+		self.label:SetVertexColor(WHITE_FONT_COLOR:GetRGB())
+		self.Text:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+	end)
+	scaleSlider:SetEnabled(not self.config.autoScale)
+
+	-- AUTO SCALE
+	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "OptionsBaseCheckButtonTemplate")
+	autoScaleCheckbox:SetPoint("RIGHT", scaleSlider, "LEFT", 0, 0)
+	autoScaleCheckbox.tooltipOwnerPoint = "ANCHOR_TOP"
+	autoScaleCheckbox.tooltipText = L["Autoscaling"]
+	autoScaleCheckbox:SetChecked(self.config.autoScale)
+	autoScaleCheckbox:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		scaleSlider:SetEnabled(not checked)
+		config.config.autoScale = checked
+		config:setAutoScale()
 	end)
 
 	-- OPACITY
@@ -161,6 +200,31 @@ config:SetScript("OnShow", function(self)
 	-- RESET ONSHOW
 	self:SetScript("OnShow", nil)
 end)
+
+
+function config:setAutoScale()
+	if self.config.autoScale then
+		if not self.defuiscale then
+			local useUiScale = GetCVar("useUiScale")
+			SetCVar("useUiScale", 0)
+			self.defuiscale = UIParent:GetEffectiveScale()
+			SetCVar("useUiScale", useUiScale)
+
+			hooksecurefunc("SetCVar", function(cmd)
+				if cmd == "useUiScale" or cmd == "uiscale" or cmd == "gxMonitor" then
+					self:setAutoScale()
+				end
+			end)
+		end
+
+		self.config.scale = self.defuiscale / UIParent:GetEffectiveScale()
+		if self.scaleSlider then
+			self.scaleSlider:SetValue(math.floor(self.config.scale * 100 + .5) / 100)
+		end
+	end
+
+	self:setCursorSettings()
+end
 
 
 function config:setCursorSettings()

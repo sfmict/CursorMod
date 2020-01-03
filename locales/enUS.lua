@@ -2,6 +2,7 @@ local _, L = ...
 
 L["author"] = "Author"
 L["%s Configuration"] = "%s Configuration"
+L["Autoscaling"] = "Autoscaling"
 L["Scale"] = "Scale"
 L["Opacity"] = "Opacity"
 

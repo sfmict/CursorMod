@@ -20,10 +20,10 @@ local function hide(force)
 end
 
 
-hooksecurefunc("TurnOrActionStart",show)
-hooksecurefunc("TurnOrActionStop",hide)
-hooksecurefunc("CameraOrSelectOrMoveStart",show)
-hooksecurefunc("CameraOrSelectOrMoveStop",hide)
-hooksecurefunc("MoveAndSteerStart",show)
+hooksecurefunc("TurnOrActionStart", show)
+hooksecurefunc("TurnOrActionStop", hide)
+hooksecurefunc("CameraOrSelectOrMoveStart", show)
+hooksecurefunc("CameraOrSelectOrMoveStop", hide)
+hooksecurefunc("MoveAndSteerStart", show)
 hooksecurefunc("MoveAndSteerStop", function() hide(1) end)
 MovieFrame:HookScript("OnMovieFinished", function() hide(1) end)

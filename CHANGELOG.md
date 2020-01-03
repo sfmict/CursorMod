@@ -1,1 +1,1 @@
-* Fixed opacity and scale settings.
+* Added autoscaling.
