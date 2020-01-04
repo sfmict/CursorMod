@@ -1,4 +1,4 @@
-## Interface: 11303
+## Interface: 80205
 ## Title: CursorMod
 ## Author: sfmict
 ## Version: @project-version@
