@@ -71,7 +71,6 @@ config:SetScript("OnShow", function(self)
 	-- PREVIEW CURSOR
 	local cursorPreview = self:CreateTexture(nil, "ARTWORK")
 	self.cursorPreview = cursorPreview
-	cursorPreview:SetTexture("Interface/AddOns/CursorMod/texture/point.blp")
 	cursorPreview:SetPoint("CENTER", previewBg)
 
 	-- TEXTURE SELECT
