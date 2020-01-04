@@ -71,7 +71,6 @@ config:SetScript("OnShow", function(self)
 	-- PREVIEW CURSOR
 	local cursorPreview = self:CreateTexture(nil, "ARTWORK")
 	self.cursorPreview = cursorPreview
-	cursorPreview:SetTexture("Interface/AddOns/CursorMod/texture/point.blp")
 	cursorPreview:SetPoint("CENTER", previewBg)
 
 	-- TEXTURE SELECT
@@ -86,13 +85,13 @@ config:SetScript("OnShow", function(self)
 	self.textureBtn = {}
 	local function createTextureButton(texPath, id)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
-		
+
 		if id == 1 then
 			btn:SetPoint("BOTTOMLEFT", previewBg, "TOP", -16 * #self.textures, 2)
 		else
 			btn:SetPoint("LEFT", self.textureBtn[id - 1], "RIGHT")
 		end
-		
+
 		btn.id = id
 		btn.icon:SetTexture(texPath)
 		btn:SetScript("OnClick", textureBtnClick)
