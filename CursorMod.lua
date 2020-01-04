@@ -1,6 +1,8 @@
-local cursor, f = UIParent:CreateTexture(nil, "OVERLAY"), 0
-UIParent.cursorTexture = cursor
-cursor:SetTexture("Interface/AddOns/CursorMod/texture/point.blp")
+local config, UIParent, GetCursorPosition, f = CursorModConfig, UIParent, GetCursorPosition, 0
+config.cursorFrame = CreateFrame("FRAME", nil, UIParent)
+config.cursorFrame:SetFrameStrata("TOOLTIP")
+config.cursor = config.cursorFrame:CreateTexture(nil, "OVERLAY")
+local cursor = config.cursor
 
 
 local function show()

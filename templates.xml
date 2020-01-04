@@ -1,0 +1,75 @@
+<Ui>
+	<Button name="CursorModTextureSelectTemplate" virtual="true">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="background" file="Interface/ChatFrame/ChatFrameBackground" alpha=".5">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="3" y="-3"/>
+						<Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+					</Anchors>
+					<Color r=".1" g=".1" b=".1"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="icon">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-5"/>
+						<Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="check" file="Interface/Buttons/CheckButtonHilight" setAllPoints="true" alphaMode="ADD" alpha=".3" hidden="true"/>
+			</Layer>
+		</Layers>
+		<HighlightTexture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD"/>
+	</Button>
+
+	<CheckButton name="CursorModCheckButtonTemplate" inherits="OptionsBaseCheckButtonTemplate" virtual="true">
+		<HitRectInsets>
+			<AbsInset left="0" right="-100" top="0" bottom="0"/>
+		</HitRectInsets>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString inherits="GameFontHighlightLeft" parentKey="Text">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="1" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<Slider name="CursorModSliderTemplate" inherits="HorizontalSliderTemplate" virtual="true">
+		<Size x="400" y="17"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="text" inherits="GameFontNormalSmall">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="label" inherits="GameFontHighlightSmall">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="2" y="1"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnDisable>
+				self.label:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+				self.text:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+			</OnDisable>
+			<OnEnable>
+				self.label:SetVertexColor(WHITE_FONT_COLOR:GetRGB())
+				self.text:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+			</OnEnable>
+		</Scripts>
+	</Slider>
+</Ui>
