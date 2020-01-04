@@ -67,7 +67,7 @@
 				self.text:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
 			</OnDisable>
 			<OnEnable>
-				self.label:SetVertexColor(WHITE_FONT_COLOR:GetRGB())
+				self.label:SetVertexColor(HIGHLIGHT_FONT_COLOR:GetRGB())
 				self.text:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 			</OnEnable>
 		</Scripts>
