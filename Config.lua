@@ -29,9 +29,9 @@ function config:ADDON_LOADED(addonName)
 		self.config.texPoint = self.config.texPoint or 1
 		if not self.config.size then
 			local cursorSizePreferred = GetCVar("cursorSizePreferred")
-			if cursorSizePreferred == 2 then
+			if cursorSizePreferred == "2" then
 				self.config.size = 64
-			elseif cursorSizePreferred == 1 then
+			elseif cursorSizePreferred == "1" then
 				self.config.size = 48
 			else
 				self.config.size = 32
