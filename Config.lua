@@ -7,6 +7,8 @@ config.textures = {
 	"Interface/AddOns/CursorMod/texture/point",
 	"Interface/cursor/point",
 	"Interface/cursor/unablepoint",
+	"Interface/AddOns/CursorMod/texture/point-inverse",
+	"Interface/AddOns/CursorMod/texture/point-ghostly",
 }
 
 
@@ -66,7 +68,7 @@ config:SetScript("OnShow", function(self)
 	previewBg:SetTexture("Interface/ChatFrame/ChatFrameBackground")
 	previewBg:SetVertexColor(.1, .1, .1, .5)
 	previewBg:SetSize(128, 128)
-	previewBg:SetPoint("TOPLEFT", 16, -90)
+	previewBg:SetPoint("TOPLEFT", 16, -110)
 
 	-- PREVIEW CURSOR
 	local cursorPreview = self:CreateTexture(nil, "ARTWORK")
@@ -87,7 +89,7 @@ config:SetScript("OnShow", function(self)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
 
 		if id == 1 then
-			btn:SetPoint("BOTTOMLEFT", previewBg, "TOP", -16 * #self.textures, 2)
+			btn:SetPoint("BOTTOMLEFT", previewBg, "TOPLEFT", 0, 20)
 		else
 			btn:SetPoint("LEFT", self.textureBtn[id - 1], "RIGHT")
 		end
@@ -106,7 +108,7 @@ config:SetScript("OnShow", function(self)
 
 	-- SIZE COMBOBOX
 	local sizeCombobox = CreateFrame("FRAME", "CursorModSize", self, "UIDropDownMenuTemplate")
-	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 10, 7)
+	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 10, 6)
 
 	UIDropDownMenu_Initialize(sizeCombobox, function(self, level, menuList)
 		local info = UIDropDownMenu_CreateInfo()
