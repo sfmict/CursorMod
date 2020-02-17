@@ -47,7 +47,6 @@ function config:ADDON_LOADED(addonName)
 		self.config.color = self.config.color or {1, 1, 1}
 
 		self:setAutoScale()
-		config:openConfig()
 	end
 end
 
