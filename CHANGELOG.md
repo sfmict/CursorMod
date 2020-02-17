@@ -1,1 +1,1 @@
-* Update for 8.3.
+* Added inverse and ghostly cursor texture.
