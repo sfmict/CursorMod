@@ -1,1 +1,1 @@
-* Added inverse and ghostly cursor texture.
+* Minor fixes.
