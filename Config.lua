@@ -240,13 +240,8 @@ end)
 
 function config:setAutoScale()
 	if self.config.autoScale then
-		local uiWidth, uiHeight, width, height = UIParent:GetSize()
-
-		if Display_DisplayModeDropDown:fullscreenmode() then
-			width, height = DecodeResolution(GetScreenResolutions(Display_PrimaryMonitorDropDown:GetValue(), true))
-		else
-			width, height = GetPhysicalScreenSize()
-		end
+		local uiWidth, uiHeight = UIParent:GetSize()
+		local width, height = GetPhysicalScreenSize()
 		self.autoScale = max(uiWidth / width, uiHeight / height)
 	else
 		self.autoScale = nil
