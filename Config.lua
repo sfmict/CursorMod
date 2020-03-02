@@ -46,6 +46,13 @@ function config:ADDON_LOADED(addonName)
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
+		hooksecurefunc("SetCVar", function(cmd)
+			cmd = cmd:lower()
+			if cmd == "useuiscale" or cmd == "uiscale" then
+				self:setAutoScale()
+			end
+		end)
+		self:RegisterEvent("DISPLAY_SIZE_CHANGED")
 		self:setAutoScale()
 	end
 end
@@ -233,33 +240,27 @@ end)
 
 function config:setAutoScale()
 	if self.config.autoScale then
-		if not self.defuiscale then
-			local useUiScale = GetCVar("useUiScale")
-			SetCVar("useUiScale", 0)
-			self.defuiscale = UIParent:GetEffectiveScale()
-			SetCVar("useUiScale", useUiScale)
+		local uiWidth, uiHeight, width, height = UIParent:GetSize()
 
-			hooksecurefunc("SetCVar", function(cmd)
-				if cmd == "useUiScale" or cmd == "uiscale" or cmd == "gxMonitor" then
-					self:setAutoScale()
-				end
-			end)
+		if Display_DisplayModeDropDown:fullscreenmode() then
+			width, height = DecodeResolution(GetScreenResolutions(Display_PrimaryMonitorDropDown:GetValue(), true))
+		else
+			width, height = GetPhysicalScreenSize()
 		end
-
-		self.config.scale = self.defuiscale / UIParent:GetEffectiveScale()
-		if self.scaleSlider then
-			self.scaleSlider:SetValue(math.floor(self.config.scale * 100 + .5) / 100)
-		end
+		self.autoScale = max(uiWidth / width, uiHeight / height)
+	else
+		self.autoScale = nil
 	end
 
 	self:setCursorSettings()
 end
+config.DISPLAY_SIZE_CHANGED = config.setAutoScale
 
 
 function config:setCursorSettings()
 	self.cursor:SetTexture(self.textures[self.config.texPoint])
 	self.cursor:SetSize(self.config.size, self.config.size)
-	self.cursor:SetScale(self.config.scale)
+	self.cursor:SetScale(self.autoScale or self.config.scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
 
@@ -276,7 +277,7 @@ function config:setCursorSettings()
 	if self.cursorPreview then
 		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
 		self.cursorPreview:SetSize(self.config.size, self.config.size)
-		self.cursorPreview:SetScale(self.config.scale)
+		self.cursorPreview:SetScale(self.autoScale or self.config.scale)
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
 	end
