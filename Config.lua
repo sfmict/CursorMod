@@ -12,11 +12,7 @@ config.textures = {
 }
 
 
-config:SetScript("OnEvent", function(self, event, ...)
-	if self[event] then
-		self[event](self, ...)
-	end
-end)
+config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
 config:RegisterEvent("ADDON_LOADED")
 
 
@@ -39,7 +35,7 @@ function config:ADDON_LOADED(addonName)
 				self.config.size = 32
 			end
 		end
-		if type(self.config.autoScale) ~= "boolean" and not self.config.scale then
+		if type(self.config.autoScale) ~= "boolean" then
 			self.config.autoScale = true
 		end
 		self.config.scale = self.config.scale or 1
@@ -253,9 +249,10 @@ config.DISPLAY_SIZE_CHANGED = config.setAutoScale
 
 
 function config:setCursorSettings()
+	local scale = self.autoScale or self.config.scale
 	self.cursor:SetTexture(self.textures[self.config.texPoint])
 	self.cursor:SetSize(self.config.size, self.config.size)
-	self.cursor:SetScale(self.autoScale or self.config.scale)
+	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
 
@@ -270,9 +267,10 @@ function config:setCursorSettings()
 	end
 
 	if self.cursorPreview then
+		if scale > 2 then scale = 2 end
 		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
 		self.cursorPreview:SetSize(self.config.size, self.config.size)
-		self.cursorPreview:SetScale(self.autoScale or self.config.scale)
+		self.cursorPreview:SetScale(scale)
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
 	end
