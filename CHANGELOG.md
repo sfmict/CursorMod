@@ -1,1 +1,1 @@
-* Minor fixes.
+* Update autoscaling.
