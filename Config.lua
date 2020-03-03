@@ -42,13 +42,7 @@ function config:ADDON_LOADED(addonName)
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
-		hooksecurefunc("SetCVar", function(cmd)
-			cmd = cmd:lower()
-			if cmd == "useuiscale" or cmd == "uiscale" then
-				self:setAutoScale()
-			end
-		end)
-		self:RegisterEvent("DISPLAY_SIZE_CHANGED")
+		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
 	end
 end
@@ -236,16 +230,23 @@ end)
 
 function config:setAutoScale()
 	if self.config.autoScale then
-		local uiWidth, uiHeight = UIParent:GetSize()
-		local width, height = GetPhysicalScreenSize()
-		self.autoScale = max(uiWidth / width, uiHeight / height)
+		local height
+		if Display_DisplayModeDropDown:fullscreenmode() then
+			local resolutions = {GetScreenResolutions(Display_PrimaryMonitorDropDown:GetValue(), true)}
+			local _, height1 = DecodeResolution(resolutions[1])
+			local _, height2 = DecodeResolution(resolutions[#resolutions])
+			height = height1 > height2 and height1 or height2
+		else
+			_, height = GetPhysicalScreenSize()
+		end
+		self.autoScale = WorldFrame:GetHeight() / height / UIParent:GetScale()
 	else
 		self.autoScale = nil
 	end
 
 	self:setCursorSettings()
 end
-config.DISPLAY_SIZE_CHANGED = config.setAutoScale
+config.UI_SCALE_CHANGED = config.setAutoScale
 
 
 function config:setCursorSettings()
@@ -255,6 +256,7 @@ function config:setCursorSettings()
 	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
+	self.cursor.scale = scale * UIParent:GetScale()
 
 	if self.config.changeCursorSize then
 		if self.config.size == 64 then
