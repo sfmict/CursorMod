@@ -10,7 +10,6 @@ local function show(n)
 	cursor[n] = false
 	local x, y = GetCursorPosition()
 	local scale = cursor.scale
-
 	cursor:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
 	cursor:Show()
 end

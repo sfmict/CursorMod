@@ -231,8 +231,8 @@ end)
 function config:setAutoScale()
 	if self.config.autoScale then
 		local height
-		if Display_DisplayModeDropDown:fullscreenmode() then
-			local resolutions = {GetScreenResolutions(Display_PrimaryMonitorDropDown:GetValue(), true)}
+		if GetCVar("gxMaximize") == "1" then
+			local resolutions = {GetScreenResolutions(GetCVar("gxMonitor") + 1, true)}
 			local _, height1 = DecodeResolution(resolutions[1])
 			local _, height2 = DecodeResolution(resolutions[#resolutions])
 			height = height1 > height2 and height1 or height2
