@@ -230,16 +230,15 @@ end)
 
 function config:setAutoScale()
 	if self.config.autoScale then
-		local height
-		if GetCVar("gxMaximize") == "1" then
+		local width
+		if GetCVarBool("gxMaximize") then
 			local resolutions = {GetScreenResolutions(GetCVar("gxMonitor") + 1, true)}
-			local _, height1 = DecodeResolution(resolutions[1])
-			local _, height2 = DecodeResolution(resolutions[#resolutions])
-			height = height1 > height2 and height1 or height2
+			local width1, width2 = DecodeResolution(resolutions[1]), DecodeResolution(resolutions[#resolutions])
+			width = width1 > width2 and width1 or width2
 		else
-			_, height = GetPhysicalScreenSize()
+			width = GetPhysicalScreenSize()
 		end
-		self.autoScale = WorldFrame:GetHeight() / height / UIParent:GetScale()
+		self.autoScale = WorldFrame:GetWidth() / width / UIParent:GetScale()
 	else
 		self.autoScale = nil
 	end
