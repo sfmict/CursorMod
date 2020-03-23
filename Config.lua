@@ -201,7 +201,7 @@ config:SetScript("OnShow", function(self)
 		config:setCursorSettings()
 	end
 	colorBtn:SetScript("OnClick", function()
-		local r, g, b = colorTex:GetVertexColor()
+		local r, g, b = unpack(config.config.color)
 		ColorPickerFrame.previousValues = {r, g, b}
 		ColorPickerFrame.func = updateColor
 		ColorPickerFrame.cancelFunc = cancelColor
