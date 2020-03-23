@@ -12,11 +12,7 @@ config.textures = {
 }
 
 
-config:SetScript("OnEvent", function(self, event, ...)
-	if self[event] then
-		self[event](self, ...)
-	end
-end)
+config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
 config:RegisterEvent("ADDON_LOADED")
 
 
@@ -39,20 +35,14 @@ function config:ADDON_LOADED(addonName)
 				self.config.size = 32
 			end
 		end
-		if type(self.config.autoScale) ~= "boolean" and not self.config.scale then
+		if type(self.config.autoScale) ~= "boolean" then
 			self.config.autoScale = true
 		end
 		self.config.scale = self.config.scale or 1
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
-		hooksecurefunc("SetCVar", function(cmd)
-			cmd = cmd:lower()
-			if cmd == "useuiscale" or cmd == "uiscale" then
-				self:setAutoScale()
-			end
-		end)
-		self:RegisterEvent("DISPLAY_SIZE_CHANGED")
+		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
 	end
 end
@@ -211,7 +201,7 @@ config:SetScript("OnShow", function(self)
 		config:setCursorSettings()
 	end
 	colorBtn:SetScript("OnClick", function()
-		local r, g, b = colorTex:GetVertexColor()
+		local r, g, b = unpack(config.config.color)
 		ColorPickerFrame.previousValues = {r, g, b}
 		ColorPickerFrame.func = updateColor
 		ColorPickerFrame.cancelFunc = cancelColor
@@ -240,24 +230,32 @@ end)
 
 function config:setAutoScale()
 	if self.config.autoScale then
-		local uiWidth, uiHeight = UIParent:GetSize()
-		local width, height = GetPhysicalScreenSize()
-		self.autoScale = max(uiWidth / width, uiHeight / height)
+		local width
+		if GetCVarBool("gxMaximize") then
+			local resolutions = {GetScreenResolutions(GetCVar("gxMonitor") + 1, true)}
+			local width1, width2 = DecodeResolution(resolutions[1]), DecodeResolution(resolutions[#resolutions])
+			width = width1 > width2 and width1 or width2
+		else
+			width = GetPhysicalScreenSize()
+		end
+		self.autoScale = WorldFrame:GetWidth() / width / UIParent:GetScale()
 	else
 		self.autoScale = nil
 	end
 
 	self:setCursorSettings()
 end
-config.DISPLAY_SIZE_CHANGED = config.setAutoScale
+config.UI_SCALE_CHANGED = config.setAutoScale
 
 
 function config:setCursorSettings()
+	local scale = self.autoScale or self.config.scale
 	self.cursor:SetTexture(self.textures[self.config.texPoint])
 	self.cursor:SetSize(self.config.size, self.config.size)
-	self.cursor:SetScale(self.autoScale or self.config.scale)
+	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
+	self.cursor.scale = scale * UIParent:GetScale()
 
 	if self.config.changeCursorSize then
 		if self.config.size == 64 then
@@ -270,9 +268,10 @@ function config:setCursorSettings()
 	end
 
 	if self.cursorPreview then
+		if scale > 2 then scale = 2 end
 		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
 		self.cursorPreview:SetSize(self.config.size, self.config.size)
-		self.cursorPreview:SetScale(self.autoScale or self.config.scale)
+		self.cursorPreview:SetScale(scale)
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
 	end
