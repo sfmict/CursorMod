@@ -1,1 +1,1 @@
-* Update autoscaling.
+* Fixed scaling when addons change scaling of UIParent.
