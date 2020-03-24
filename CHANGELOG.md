@@ -1,1 +1,1 @@
-* Update toc file.
+* Fixed scaling when addons change scaling of UIParent.

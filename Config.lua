@@ -42,6 +42,7 @@ function config:ADDON_LOADED(addonName)
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
+		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
 	end
