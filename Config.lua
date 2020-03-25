@@ -54,12 +54,12 @@ config:SetScript("OnShow", function(self)
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	info:SetPoint("TOPRIGHT", -16, 16)
 	info:SetTextColor(.5, .5, .5, 1)
-	info:SetText(format("%s %s: %s", GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
+	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
 
 	-- TITLE
 	local title = self:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	title:SetPoint("TOPLEFT", 16, -16)
-	title:SetText(format(L["%s Configuration"], addon))
+	title:SetText(L["%s Configuration"]:format(addon))
 
 	-- PREVIEW BACKGROUND
 	local previewBg = self:CreateTexture(nil, "BACKGROUND")
