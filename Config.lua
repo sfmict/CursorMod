@@ -110,7 +110,7 @@ config:SetScript("OnShow", function(self)
 	local sizeCombobox = CreateFrame("FRAME", "CursorModSize", self, "UIDropDownMenuTemplate")
 	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 10, 6)
 
-	UIDropDownMenu_Initialize(sizeCombobox, function(self, level, menuList)
+	UIDropDownMenu_Initialize(sizeCombobox, function(self, level)
 		local info = UIDropDownMenu_CreateInfo()
 		for _, size in ipairs({32, 48, 64}) do
 			info.checked = nil
