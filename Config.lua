@@ -300,3 +300,46 @@ end
 
 SLASH_CURSORMODCONFIG1 = "/cursormod"
 SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
+
+
+if LibStub then
+	local ldb = LibStub("LibDataBroker-1.1", true)
+	if ldb then
+		local r, g, b = 1, 1, 1
+		local r2, g2, b2 = true, true, true
+		local ldbButton
+		ldbButton = ldb:NewDataObject("CursorMod", {
+			type = "launcher",
+			text = "CursorMod",
+			icon = "Interface/AddOns/CursorMod/texture/point",
+			iconCoords = {0, .9, 0, .9},
+			iconR = 1,
+			iconG = 1,
+			iconB = 1,
+			OnTooltipShow = function(tooltip)
+				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+			end,
+			OnClick = function() config:openConfig() end,
+			OnEnter = function(self)
+				config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+					elaps = elaps / 2
+					if r > 1 then r2 = true end
+					if r < 0 then r2 = false end
+					r = r2 and r - elaps - elaps / random(3) or r + elaps + elaps / random(3)
+					if g > 1 then g2 = true end
+					if g < 0 then g2 = false end
+					g = g2 and g - elaps or g + elaps
+					if b > 1 then b2 = true end
+					if b < 0 then b2 = false end
+					b = b2 and b - elaps + elaps / random(3) or b + elaps - elaps / random(3)
+					ldbButton.iconR = r
+					ldbButton.iconG = g
+					ldbButton.iconB = b
+				end)
+			end,
+			OnLeave = function(self)
+				config.cursorFrame:SetScript("OnUpdate", nil);
+			end,
+		})
+	end
+end
