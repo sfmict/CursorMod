@@ -14,6 +14,7 @@ config.textures = {
 
 config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
 config:RegisterEvent("ADDON_LOADED")
+config:RegisterEvent("PLAYER_LOGIN")
 
 
 function config:ADDON_LOADED(addonName)
@@ -278,6 +279,10 @@ function config:setCursorSettings()
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
 	end
+
+	if self.ldbButton then
+		self.ldbButton.icon = self.textures[self.config.texPoint]
+	end
 end
 
 
@@ -302,44 +307,46 @@ SLASH_CURSORMODCONFIG1 = "/cursormod"
 SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
 
 
-if LibStub then
-	local ldb = LibStub("LibDataBroker-1.1", true)
-	if ldb then
-		local r, g, b = 1, 1, 1
-		local r2, g2, b2 = true, true, true
-		local ldbButton
-		ldbButton = ldb:NewDataObject("CursorMod", {
-			type = "launcher",
-			text = "CursorMod",
-			icon = "Interface/AddOns/CursorMod/texture/point",
-			iconCoords = {0, .9, 0, .9},
-			iconR = 1,
-			iconG = 1,
-			iconB = 1,
-			OnTooltipShow = function(tooltip)
-				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
-			end,
-			OnClick = function() config:openConfig() end,
-			OnEnter = function(self)
-				config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
-					elaps = elaps / 2
-					if r > 1 then r2 = true end
-					if r < 0 then r2 = false end
-					r = r2 and r - elaps - elaps / random(3) or r + elaps + elaps / random(3)
-					if g > 1 then g2 = true end
-					if g < 0 then g2 = false end
-					g = g2 and g - elaps or g + elaps
-					if b > 1 then b2 = true end
-					if b < 0 then b2 = false end
-					b = b2 and b - elaps + elaps / random(3) or b + elaps - elaps / random(3)
-					ldbButton.iconR = r
-					ldbButton.iconG = g
-					ldbButton.iconB = b
-				end)
-			end,
-			OnLeave = function(self)
-				config.cursorFrame:SetScript("OnUpdate", nil);
-			end,
-		})
+-- ADD BUTTON TO DATABROKER
+function config:PLAYER_LOGIN()
+	if LibStub then
+		local ldb = LibStub("LibDataBroker-1.1", true)
+		if ldb then
+			local r, g, b = unpack(config.config.color)
+			local r2, g2, b2 = 1, 1, 1
+			config.ldbButton = ldb:NewDataObject("CursorMod", {
+				type = "launcher",
+				text = "CursorMod",
+				icon = config.textures[config.config.texPoint],
+				iconCoords = {0, .9, 0, .9},
+				iconR = r,
+				iconG = g,
+				iconB = b,
+				OnTooltipShow = function(tooltip)
+					tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+				end,
+				OnClick = function() config:openConfig() end,
+				OnEnter = function()
+					config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+						elaps = elaps / 2
+						if r > 1 then r2 = -1 end
+						if r < 0 then r2 = 1 end
+						r = r + r2 * (elaps - elaps / random(3))
+						if g > 1 then g2 = -1 end
+						if g < 0 then g2 = 1 end
+						g = g + g2 * elaps
+						if b > 1 then b2 = -1 end
+						if b < 0 then b2 = 1 end
+						b = b + b2 * (elaps + elaps / random(3))
+						config.ldbButton.iconR = r
+						config.ldbButton.iconG = g
+						config.ldbButton.iconB = b
+					end)
+				end,
+				OnLeave = function()
+					config.cursorFrame:SetScript("OnUpdate", nil)
+				end,
+			})
+		end
 	end
 end
