@@ -1,9 +1,10 @@
 local config, UIParent, GetCursorPosition = CursorModConfig, UIParent, GetCursorPosition
 config.cursorFrame = CreateFrame("FRAME", nil, UIParent)
-config.cursorFrame:SetFrameStrata("TOOLTIP")
-config.cursor = config.cursorFrame:CreateTexture(nil, "OVERLAY")
+local cursorFrame = config.cursorFrame
+cursorFrame:SetFrameStrata("TOOLTIP")
+config.cursor = cursorFrame:CreateTexture(nil, "OVERLAY")
 local cursor = config.cursor
-cursor[1], cursor[2], cursor[3] = true, true, true
+cursor[1], cursor[2] = true, true
 
 
 local function show(n)
@@ -16,23 +17,19 @@ end
 
 
 local function hide(n)
-	if n == 3 then
-		cursor[1] = true
-		cursor[2] = true
-		cursor[3] = true
-	else
-		cursor[n] = true
-	end
-	if cursor[1] and cursor[2] and cursor[3] then cursor:Hide() end
+	cursor[n] = true
+	if cursor[1] and cursor[2] then cursor:Hide() end
 end
 
 
-hooksecurefunc("CameraOrSelectOrMoveStart", function() show(1) end)
-hooksecurefunc("CameraOrSelectOrMoveStop", function() hide(1) end)
-hooksecurefunc("TurnOrActionStart", function() show(2) end)
-hooksecurefunc("TurnOrActionStop", function() hide(2) end)
-hooksecurefunc("MouselookStart", function() show(2) end)
-hooksecurefunc("MouselookStop", function() hide(2) end)
-hooksecurefunc("MoveAndSteerStart", function() show(3) end)
-hooksecurefunc("MoveAndSteerStop", function() hide(3) end)
-MovieFrame:HookScript("OnMovieFinished", function() hide(3) end)
+function cursorFrame:PLAYER_STARTED_LOOKING() show(1) end
+function cursorFrame:PLAYER_STARTED_TURNING() show(2) end
+function cursorFrame:PLAYER_STOPPED_LOOKING() hide(1) end
+function cursorFrame:PLAYER_STOPPED_TURNING() hide(2) end
+
+
+cursorFrame:SetScript("OnEvent", function(self, event) self[event](self) end)
+cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
+cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
+cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
+cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
