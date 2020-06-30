@@ -3,11 +3,16 @@ config.cursorFrame = CreateFrame("FRAME", nil, UIParent)
 config.cursorFrame:SetFrameStrata("TOOLTIP")
 config.cursor = config.cursorFrame:CreateTexture(nil, "OVERLAY")
 local cursor = config.cursor
-cursor[1], cursor[2], cursor[3] = true, true, true
+cursor[1], cursor[2] = true, true
 
 
 local function show(n)
-	cursor[n] = false
+	if n == 3 then
+		cursor[1] = false
+		cursor[2] = false
+	else
+		cursor[n] = false
+	end
 	local x, y = GetCursorPosition()
 	local scale = cursor.scale
 	cursor:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
@@ -19,11 +24,10 @@ local function hide(n)
 	if n == 3 then
 		cursor[1] = true
 		cursor[2] = true
-		cursor[3] = true
 	else
 		cursor[n] = true
 	end
-	if cursor[1] and cursor[2] and cursor[3] then cursor:Hide() end
+	if cursor[1] and cursor[2] then cursor:Hide() end
 end
 
 

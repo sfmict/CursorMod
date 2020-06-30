@@ -1,1 +1,1 @@
-* Fixed scaling when addons change scaling of UIParent.
+* Added launch button to DataBroker.

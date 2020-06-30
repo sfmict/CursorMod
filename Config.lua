@@ -14,6 +14,7 @@ config.textures = {
 
 config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
 config:RegisterEvent("ADDON_LOADED")
+config:RegisterEvent("PLAYER_LOGIN")
 
 
 function config:ADDON_LOADED(addonName)
@@ -54,12 +55,14 @@ config:SetScript("OnShow", function(self)
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	info:SetPoint("TOPRIGHT", -16, 16)
 	info:SetTextColor(.5, .5, .5, 1)
-	info:SetText(format("%s %s: %s", GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
+	info:SetJustifyH("RIGHT")
+	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
 
 	-- TITLE
 	local title = self:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	title:SetPoint("TOPLEFT", 16, -16)
-	title:SetText(format(L["%s Configuration"], addon))
+	title:SetJustifyH("LEFT")
+	title:SetText(L["%s Configuration"]:format(addon))
 
 	-- PREVIEW BACKGROUND
 	local previewBg = self:CreateTexture(nil, "BACKGROUND")
@@ -108,7 +111,7 @@ config:SetScript("OnShow", function(self)
 	local sizeCombobox = CreateFrame("FRAME", "CursorModSize", self, "UIDropDownMenuTemplate")
 	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 10, 6)
 
-	UIDropDownMenu_Initialize(sizeCombobox, function(self, level, menuList)
+	UIDropDownMenu_Initialize(sizeCombobox, function(self, level)
 		local info = UIDropDownMenu_CreateInfo()
 		for _, size in ipairs({32, 48, 64}) do
 			info.checked = nil
@@ -276,6 +279,10 @@ function config:setCursorSettings()
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
 	end
+
+	if self.ldbButton then
+		self.ldbButton.icon = self.textures[self.config.texPoint]
+	end
 end
 
 
@@ -298,3 +305,48 @@ end
 
 SLASH_CURSORMODCONFIG1 = "/cursormod"
 SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
+
+
+-- ADD BUTTON TO DATABROKER
+function config:PLAYER_LOGIN()
+	if LibStub then
+		local ldb = LibStub("LibDataBroker-1.1", true)
+		if ldb then
+			local r, g, b = unpack(config.config.color)
+			local r2, g2, b2 = 1, 1, 1
+			config.ldbButton = ldb:NewDataObject("CursorMod", {
+				type = "launcher",
+				text = "CursorMod",
+				icon = config.textures[config.config.texPoint],
+				iconCoords = {0, .9, 0, .9},
+				iconR = r,
+				iconG = g,
+				iconB = b,
+				OnTooltipShow = function(tooltip)
+					tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+				end,
+				OnClick = function() config:openConfig() end,
+				OnEnter = function()
+					config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+						elaps = elaps / 2
+						if r > 1 then r2 = -1 end
+						if r < 0 then r2 = 1 end
+						r = r + r2 * (elaps - elaps / random(3))
+						if g > 1 then g2 = -1 end
+						if g < 0 then g2 = 1 end
+						g = g + g2 * elaps
+						if b > 1 then b2 = -1 end
+						if b < 0 then b2 = 1 end
+						b = b + b2 * (elaps + elaps / random(3))
+						config.ldbButton.iconR = r
+						config.ldbButton.iconG = g
+						config.ldbButton.iconB = b
+					end)
+				end,
+				OnLeave = function()
+					config.cursorFrame:SetScript("OnUpdate", nil)
+				end,
+			})
+		end
+	end
+end
