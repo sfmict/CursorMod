@@ -232,13 +232,24 @@ config:SetScript("OnShow", function(self)
 end)
 
 
+local function DecodeResolution(valueString)
+	local xIndex = strfind(valueString, "x")
+	local width = strsub(valueString, 1, xIndex-1)
+	local height = strsub(valueString, xIndex + 1, strlen(valueString))
+	local widthIndex = strfind(height, " ")
+	if (widthIndex ~= nil) then
+		height = strsub(height, 0, widthIndex - 1)
+	end
+	return tonumber(width), tonumber(height)
+end
+
+
 function config:setAutoScale()
 	if self.config.autoScale then
 		local width
 		if GetCVarBool("gxMaximize") then
-			local resolutions = {GetScreenResolutions(GetCVar("gxMonitor") + 1, true)}
-			local width1, width2 = DecodeResolution(resolutions[1]), DecodeResolution(resolutions[#resolutions])
-			width = width1 > width2 and width1 or width2
+			local _, resolution = GetScreenResolutions(GetCVar("gxMonitor") + 1, true)
+			width = DecodeResolution(resolution)warl
 		else
 			width = GetPhysicalScreenSize()
 		end
