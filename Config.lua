@@ -234,10 +234,10 @@ end)
 
 local function DecodeResolution(valueString)
 	local xIndex = strfind(valueString, "x")
-	local width = strsub(valueString, 1, xIndex-1)
+	local width = strsub(valueString, 1, xIndex - 1)
 	local height = strsub(valueString, xIndex + 1, strlen(valueString))
 	local widthIndex = strfind(height, " ")
-	if (widthIndex ~= nil) then
+	if widthIndex ~= nil then
 		height = strsub(height, 0, widthIndex - 1)
 	end
 	return tonumber(width), tonumber(height)
@@ -249,7 +249,7 @@ function config:setAutoScale()
 		local width
 		if GetCVarBool("gxMaximize") then
 			local _, resolution = GetScreenResolutions(GetCVar("gxMonitor") + 1, true)
-			width = DecodeResolution(resolution)warl
+			width = DecodeResolution(resolution)
 		else
 			width = GetPhysicalScreenSize()
 		end
