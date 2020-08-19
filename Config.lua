@@ -206,10 +206,13 @@ config:SetScript("OnShow", function(self)
 	end
 	colorBtn:SetScript("OnClick", function()
 		local r, g, b = unpack(config.config.color)
-		ColorPickerFrame.previousValues = {r, g, b}
 		ColorPickerFrame.func = updateColor
-		ColorPickerFrame.cancelFunc = cancelColor
+		ColorPickerFrame.hasOpacity = nil
+		ColorPickerFrame.opacityFunc = nil
+		ColorPickerFrame.opacity = nil
 		ColorPickerFrame:SetColorRGB(r, g, b)
+		ColorPickerFrame.previousValues = {r, g, b}
+		ColorPickerFrame.cancelFunc = cancelColor
 		ColorPickerFrame:Show()
 	end)
 
