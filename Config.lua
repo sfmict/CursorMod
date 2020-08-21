@@ -194,26 +194,20 @@ config:SetScript("OnShow", function(self)
 	colorBtn:SetNormalTexture("Interface/ChatFrame/ChatFrameColorSwatch")
 	local colorTex = colorBtn:GetNormalTexture()
 	colorTex:SetVertexColor(unpack(self.config.color))
-	local function updateColor()
+
+	colorBtn.swatchFunc = function()
 		colorTex:SetVertexColor(ColorPickerFrame:GetColorRGB())
 		config.config.color = {ColorPickerFrame:GetColorRGB()}
 		config:setCursorSettings()
 	end
-	local function cancelColor(previousColor)
-		colorTex:SetVertexColor(unpack(previousColor))
-		config.config.color = previousColor
+	colorBtn.cancelFunc = function(color)
+		config.config.color = {color.r, color.g, color.b}
+		colorTex:SetVertexColor(color.r, color.g, color.b)
 		config:setCursorSettings()
 	end
-	colorBtn:SetScript("OnClick", function()
-		local r, g, b = unpack(config.config.color)
-		ColorPickerFrame.func = updateColor
-		ColorPickerFrame.hasOpacity = nil
-		ColorPickerFrame.opacityFunc = nil
-		ColorPickerFrame.opacity = nil
-		ColorPickerFrame:SetColorRGB(r, g, b)
-		ColorPickerFrame.previousValues = {r, g, b}
-		ColorPickerFrame.cancelFunc = cancelColor
-		ColorPickerFrame:Show()
+	colorBtn:SetScript("OnClick", function(btn)
+		btn.r, btn.g, btn.b = unpack(config.config.color)
+		OpenColorPicker(btn)
 	end)
 
 	local btnResetColor = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate")
