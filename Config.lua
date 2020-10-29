@@ -229,24 +229,12 @@ config:SetScript("OnShow", function(self)
 end)
 
 
-local function DecodeResolution(valueString)
-	local xIndex = strfind(valueString, "x")
-	local width = strsub(valueString, 1, xIndex - 1)
-	local height = strsub(valueString, xIndex + 1, strlen(valueString))
-	local widthIndex = strfind(height, " ")
-	if widthIndex ~= nil then
-		height = strsub(height, 0, widthIndex - 1)
-	end
-	return tonumber(width), tonumber(height)
-end
-
-
 function config:setAutoScale()
 	if self.config.autoScale then
 		local width
 		if GetCVarBool("gxMaximize") then
 			local _, resolution = GetScreenResolutions(GetCVar("gxMonitor") + 1, true)
-			width = DecodeResolution(resolution)
+			width = tonumber(resolution:match("%d+"))
 		else
 			width = GetPhysicalScreenSize()
 		end
@@ -337,14 +325,14 @@ function config:PLAYER_LOGIN()
 				OnEnter = function()
 					config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
 						elaps = elaps / 2
-						if r > 1 then r2 = -1 end
-						if r < 0 then r2 = 1 end
+						if r > 1 then r2 = -1
+						elseif r < 0 then r2 = 1 end
 						r = r + r2 * (elaps - elaps / random(3))
-						if g > 1 then g2 = -1 end
-						if g < 0 then g2 = 1 end
+						if g > 1 then g2 = -1
+						elseif g < 0 then g2 = 1 end
 						g = g + g2 * elaps
-						if b > 1 then b2 = -1 end
-						if b < 0 then b2 = 1 end
+						if b > 1 then b2 = -1
+						elseif b < 0 then b2 = 1 end
 						b = b + b2 * (elaps + elaps / random(3))
 						config.ldbButton.iconR = r
 						config.ldbButton.iconG = g
