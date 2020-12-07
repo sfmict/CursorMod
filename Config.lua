@@ -194,23 +194,20 @@ config:SetScript("OnShow", function(self)
 	colorBtn:SetNormalTexture("Interface/ChatFrame/ChatFrameColorSwatch")
 	local colorTex = colorBtn:GetNormalTexture()
 	colorTex:SetVertexColor(unpack(self.config.color))
-	local function updateColor()
+
+	colorBtn.swatchFunc = function()
 		colorTex:SetVertexColor(ColorPickerFrame:GetColorRGB())
 		config.config.color = {ColorPickerFrame:GetColorRGB()}
 		config:setCursorSettings()
 	end
-	local function cancelColor(previousColor)
-		colorTex:SetVertexColor(unpack(previousColor))
-		config.config.color = previousColor
+	colorBtn.cancelFunc = function(color)
+		config.config.color = {color.r, color.g, color.b}
+		colorTex:SetVertexColor(color.r, color.g, color.b)
 		config:setCursorSettings()
 	end
-	colorBtn:SetScript("OnClick", function()
-		local r, g, b = unpack(config.config.color)
-		ColorPickerFrame.previousValues = {r, g, b}
-		ColorPickerFrame.func = updateColor
-		ColorPickerFrame.cancelFunc = cancelColor
-		ColorPickerFrame:SetColorRGB(r, g, b)
-		ColorPickerFrame:Show()
+	colorBtn:SetScript("OnClick", function(btn)
+		btn.r, btn.g, btn.b = unpack(config.config.color)
+		OpenColorPicker(btn)
 	end)
 
 	local btnResetColor = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate")
@@ -237,8 +234,7 @@ function config:setAutoScale()
 		local width
 		if GetCVarBool("gxMaximize") then
 			local resolutions = {GetScreenResolutions(GetCVar("gxMonitor") + 1, true)}
-			local width1, width2 = DecodeResolution(resolutions[1]), DecodeResolution(resolutions[#resolutions])
-			width = width1 > width2 and width1 or width2
+			width = tonumber(resolutions[#resolutions]:match("%d+"))
 		else
 			width = GetPhysicalScreenSize()
 		end
@@ -329,14 +325,14 @@ function config:PLAYER_LOGIN()
 				OnEnter = function()
 					config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
 						elaps = elaps / 2
-						if r > 1 then r2 = -1 end
-						if r < 0 then r2 = 1 end
+						if r > 1 then r2 = -1
+						elseif r < 0 then r2 = 1 end
 						r = r + r2 * (elaps - elaps / random(3))
-						if g > 1 then g2 = -1 end
-						if g < 0 then g2 = 1 end
+						if g > 1 then g2 = -1
+						elseif g < 0 then g2 = 1 end
 						g = g + g2 * elaps
-						if b > 1 then b2 = -1 end
-						if b < 0 then b2 = 1 end
+						if b > 1 then b2 = -1
+						elseif b < 0 then b2 = 1 end
 						b = b + b2 * (elaps + elaps / random(3))
 						config.ldbButton.iconR = r
 						config.ldbButton.iconG = g
