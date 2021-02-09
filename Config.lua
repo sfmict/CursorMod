@@ -305,44 +305,42 @@ SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
 
 -- ADD BUTTON TO DATABROKER
 function config:PLAYER_LOGIN()
-	if LibStub then
-		local ldb = LibStub("LibDataBroker-1.1", true)
-		if ldb then
-			local r, g, b = unpack(config.config.color)
-			local r2, g2, b2 = 1, 1, 1
-			config.ldbButton = ldb:NewDataObject("CursorMod", {
-				type = "launcher",
-				text = "CursorMod",
-				icon = config.textures[config.config.texPoint],
-				iconCoords = {0, .9, 0, .9},
-				iconR = r,
-				iconG = g,
-				iconB = b,
-				OnTooltipShow = function(tooltip)
-					tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
-				end,
-				OnClick = function() config:openConfig() end,
-				OnEnter = function()
-					config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
-						elaps = elaps / 2
-						if r > 1 then r2 = -1
-						elseif r < 0 then r2 = 1 end
-						r = r + r2 * (elaps - elaps / random(3))
-						if g > 1 then g2 = -1
-						elseif g < 0 then g2 = 1 end
-						g = g + g2 * elaps
-						if b > 1 then b2 = -1
-						elseif b < 0 then b2 = 1 end
-						b = b + b2 * (elaps + elaps / random(3))
-						config.ldbButton.iconR = r
-						config.ldbButton.iconG = g
-						config.ldbButton.iconB = b
-					end)
-				end,
-				OnLeave = function()
-					config.cursorFrame:SetScript("OnUpdate", nil)
-				end,
-			})
-		end
+	local ldb = LibStub and LibStub("LibDataBroker-1.1", true)
+	if ldb then
+		local r, g, b = unpack(config.config.color)
+		local r2, g2, b2 = 1, 1, 1
+		config.ldbButton = ldb:NewDataObject("CursorMod", {
+			type = "launcher",
+			text = "CursorMod",
+			icon = config.textures[config.config.texPoint],
+			iconCoords = {0, .9, 0, .9},
+			iconR = r,
+			iconG = g,
+			iconB = b,
+			OnTooltipShow = function(tooltip)
+				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+			end,
+			OnClick = function() config:openConfig() end,
+			OnEnter = function()
+				config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+					elaps = elaps / 2
+					if r > 1 then r2 = -1
+					elseif r < 0 then r2 = 1 end
+					r = r + r2 * (elaps - elaps / random(3))
+					if g > 1 then g2 = -1
+					elseif g < 0 then g2 = 1 end
+					g = g + g2 * elaps
+					if b > 1 then b2 = -1
+					elseif b < 0 then b2 = 1 end
+					b = b + b2 * (elaps + elaps / random(3))
+					config.ldbButton.iconR = r
+					config.ldbButton.iconG = g
+					config.ldbButton.iconB = b
+				end)
+			end,
+			OnLeave = function()
+				config.cursorFrame:SetScript("OnUpdate", nil)
+			end,
+		})
 	end
 end
