@@ -1,1 +1,3 @@
-* Update to 9.0.5
+# CursorMod - Burning Crusade
+
+* First realise :).
