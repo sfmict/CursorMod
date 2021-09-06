@@ -1,5 +1,6 @@
 local addon, L = ...
 local config = CreateFrame("FRAME", "CursorModConfig", InterfaceOptionsFramePanelContainer)
+config:Hide()
 config.name = addon
 
 
