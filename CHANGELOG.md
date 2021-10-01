@@ -1,3 +1,3 @@
-# CursorMod
+# CursorMod - Classic
 
-* Update to 9.1.0
+* Updated to 1.14
