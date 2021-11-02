@@ -1,3 +1,3 @@
 # CursorMod
 
-* Update to 9.1.0
+* Upadted to 9.1.5.
