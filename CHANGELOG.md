@@ -1,3 +1,3 @@
 # CursorMod - Classic
 
-* Updated to 1.14
+* Updated cursor sizes.
