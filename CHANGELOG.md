@@ -1,3 +1,3 @@
 # CursorMod
 
-* Upadted to 9.1.5.
+* Updated cursor sizes.

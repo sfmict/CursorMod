@@ -27,16 +27,9 @@ function config:ADDON_LOADED(addonName)
 		self.globalDB.config = self.globalDB.config or {}
 		self.config = self.globalDB.config
 		self.config.texPoint = self.config.texPoint or 1
-		if not self.config.size then
-			local cursorSizePreferred = GetCVar("cursorSizePreferred")
-			if cursorSizePreferred == "2" then
-				self.config.size = 64
-			elseif cursorSizePreferred == "1" then
-				self.config.size = 48
-			else
-				self.config.size = 32
-			end
-		end
+		local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
+		if cursorSizePreferred == -1 then cursorSizePreferred = 0 end
+		self.config.size = cursorSizePreferred
 		if type(self.config.autoScale) ~= "boolean" then
 			self.config.autoScale = true
 		end
@@ -44,6 +37,7 @@ function config:ADDON_LOADED(addonName)
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
+		self.sizes = {[0] = 32, 48, 64, 96, 128}
 		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
@@ -114,10 +108,11 @@ config:SetScript("OnShow", function(self)
 
 	UIDropDownMenu_Initialize(sizeCombobox, function(self, level)
 		local info = UIDropDownMenu_CreateInfo()
-		for _, size in ipairs({32, 48, 64}) do
+		for i = 0, #config.sizes do
+			local size = config.sizes[i]
 			info.checked = nil
 			info.text = size.."x"..size
-			info.value = size
+			info.value = i
 			info.func = function(self)
 				config.config.size = self.value
 				config:setCursorSettings()
@@ -127,7 +122,8 @@ config:SetScript("OnShow", function(self)
 		end
 	end)
 	UIDropDownMenu_SetSelectedValue(sizeCombobox, self.config.size)
-	UIDropDownMenu_SetText(sizeCombobox, self.config.size.."x"..self.config.size)
+	local size = self.sizes[self.config.size]
+	UIDropDownMenu_SetText(sizeCombobox, size.."x"..size)
 
 	-- CHANGE CURSOR SIZE
 	local changeCursorSize = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
@@ -250,28 +246,25 @@ config.UI_SCALE_CHANGED = config.setAutoScale
 
 
 function config:setCursorSettings()
+	local size = self.sizes[self.config.size]
 	local scale = self.autoScale or self.config.scale
 	self.cursor:SetTexture(self.textures[self.config.texPoint])
-	self.cursor:SetSize(self.config.size, self.config.size)
+	self.cursor:SetSize(size, size)
 	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
 	self.cursor.scale = scale * UIParent:GetScale()
 
 	if self.config.changeCursorSize then
-		if self.config.size == 64 then
-			SetCVar("cursorSizePreferred", 2)
-		elseif self.config.size == 48 then
-			SetCVar("cursorSizePreferred", 1)
-		else
-			SetCVar("cursorSizePreferred", 0)
-		end
+		SetCVar("cursorSizePreferred", self.config.size)
 	end
 
 	if self.cursorPreview then
-		if scale > 2 then scale = 2 end
+		if size * scale > 128 then
+			scale = 128 / size
+		end
 		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
-		self.cursorPreview:SetSize(self.config.size, self.config.size)
+		self.cursorPreview:SetSize(size, size)
 		self.cursorPreview:SetScale(scale)
 		self.cursorPreview:SetAlpha(self.config.opacity)
 		self.cursorPreview:SetVertexColor(unpack(self.config.color))
