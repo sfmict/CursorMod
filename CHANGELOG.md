@@ -1,3 +1,3 @@
 # CursorMod
 
-* Updated cursor sizes.
+* Fixed "cursor size" option.
