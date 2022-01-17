@@ -1,3 +1,3 @@
 # CursorMod - Burning Crusade
 
-* Updated cursor sizes.
+* Fixed "cursor size" option.
