@@ -27,9 +27,11 @@ function config:ADDON_LOADED(addonName)
 		self.globalDB.config = self.globalDB.config or {}
 		self.config = self.globalDB.config
 		self.config.texPoint = self.config.texPoint or 1
-		local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
-		if cursorSizePreferred == -1 then cursorSizePreferred = 0 end
-		self.config.size = cursorSizePreferred
+		if self.config.size == nil then
+			local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
+			if cursorSizePreferred == -1 then cursorSizePreferred = 0 end
+			self.config.size = cursorSizePreferred
+		end
 		if type(self.config.autoScale) ~= "boolean" then
 			self.config.autoScale = true
 		end

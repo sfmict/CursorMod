@@ -1,3 +1,3 @@
 # CursorMod - Classic
 
-* Updated cursor sizes.
+* Fixed "cursor size" option.
