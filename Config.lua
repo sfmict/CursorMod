@@ -259,6 +259,8 @@ function config:setCursorSettings()
 
 	if self.config.changeCursorSize then
 		SetCVar("cursorSizePreferred", self.config.size)
+	else
+		SetCVar("cursorSizePreferred", -1)
 	end
 
 	if self.cursorPreview then
