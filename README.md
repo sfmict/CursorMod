@@ -2,7 +2,8 @@
   
 # CursorMod
 
-Makes mouse pointer remain on screen while mouselook/steering<br>
+Makes mouse pointer remain on screen while mouselook/steering
+
 [![](https://github.com/sfmict/cursormod/workflows/Retail-Build/badge.svg?branch=master)](https://github.com/sfmict/CursorMod/releases)
 [![](http://cf.way2muchnoise.eu/full_356016_downloads.svg)](https://www.curseforge.com/wow/addons/cursormod)
 </div>
