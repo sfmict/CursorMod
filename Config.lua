@@ -21,6 +21,7 @@ config:RegisterEvent("PLAYER_LOGIN")
 function config:ADDON_LOADED(addonName)
 	if addonName == addon then
 		self:UnregisterEvent("ADDON_LOADED")
+		self.ADDON_LOADED = nil
 
 		CursorModDB = CursorModDB or {}
 		self.globalDB = CursorModDB
@@ -43,6 +44,7 @@ function config:ADDON_LOADED(addonName)
 		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
+		self:setCombatTracking()
 	end
 end
 
@@ -220,6 +222,18 @@ config:SetScript("OnShow", function(self)
 		config:setCursorSettings()
 	end)
 
+	-- SHOW ONLY IN COMBAT
+	local showOnlyInCombat = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
+	showOnlyInCombat:SetPoint("TOPLEFT", previewBg, "BOTTOMLEFT", 0, -15)
+	showOnlyInCombat.Text:SetText(L["Show only in combat"])
+	showOnlyInCombat:SetChecked(self.config.showOnlyInCombat)
+	showOnlyInCombat:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		config.config.showOnlyInCombat = checked
+		config:setCombatTracking()
+	end)
+
 	-- SET SETTINGS
 	self:setCursorSettings()
 
@@ -245,6 +259,19 @@ function config:setAutoScale()
 	self:setCursorSettings()
 end
 config.UI_SCALE_CHANGED = config.setAutoScale
+
+
+function config:setCombatTracking()
+	if self.config.showOnlyInCombat then
+		self.cursorFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+		self.cursorFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+		self.cursor[3] = not InCombatLockdown()
+	else
+		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_DISABLED")
+		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
+		self.cursor[3] = false
+	end
+end
 
 
 function config:setCursorSettings()
@@ -303,6 +330,8 @@ SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
 
 -- ADD BUTTON TO DATABROKER
 function config:PLAYER_LOGIN()
+	self:UnregisterEvent("PLAYER_LOGIN")
+	self.PLAYER_LOGIN = nil
 	local ldb = LibStub and LibStub("LibDataBroker-1.1", true)
 	if ldb then
 		local r, g, b = unpack(config.config.color)
