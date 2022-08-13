@@ -29,10 +29,4 @@ function cursorFrame:PLAYER_STOPPED_LOOKING() hide(1) end
 function cursorFrame:PLAYER_STOPPED_TURNING() hide(2) end
 function cursorFrame:PLAYER_REGEN_DISABLED() show(3) end
 function cursorFrame:PLAYER_REGEN_ENABLED() hide(3) end
-
-
 cursorFrame:SetScript("OnEvent", function(self, event) self[event](self) end)
-cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
-cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
-cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
-cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
