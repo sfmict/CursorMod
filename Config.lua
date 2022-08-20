@@ -45,6 +45,11 @@ function config:ADDON_LOADED(addonName)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
 		self:setCombatTracking()
+
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
 	end
 end
 
