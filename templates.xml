@@ -26,7 +26,8 @@
 		<HighlightTexture parentKey="highlight" file="Interface/Buttons/ButtonHilight-Square" alphaMode="ADD"/>
 	</Button>
 
-	<CheckButton name="CursorModCheckButtonTemplate" inherits="OptionsBaseCheckButtonTemplate" virtual="true">
+	<CheckButton name="CursorModCheckButtonTemplate" virtual="true">
+		<Size x="30" y="29"/>
 		<HitRectInsets>
 			<AbsInset left="0" right="-100" top="0" bottom="0"/>
 		</HitRectInsets>
@@ -43,33 +44,32 @@
 				</FontString>
 			</Layer>
 		</Layers>
+		<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
+		<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
 	</CheckButton>
 
-	<Slider name="CursorModSliderTemplate" inherits="HorizontalSliderTemplate" virtual="true">
-		<Size x="400" y="17"/>
+	<Frame name="CursorModSliderTemplate" inherits="MinimalSliderWithSteppersTemplate" virtual="true">
+		<Size x="440" y="17"/>
 		<Layers>
 			<Layer level="ARTWORK">
 				<FontString parentKey="text" inherits="GameFontNormalSmall">
 					<Anchors>
-						<Anchor point="BOTTOM" relativePoint="TOP"/>
-					</Anchors>
-				</FontString>
-				<FontString parentKey="label" inherits="GameFontHighlightSmall">
-					<Anchors>
-						<Anchor point="LEFT" relativePoint="RIGHT" x="2" y="1"/>
+						<Anchor point="BOTTOM" relativePoint="TOP" y="2"/>
 					</Anchors>
 				</FontString>
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnDisable>
-				self.label:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
-				self.text:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
-			</OnDisable>
-			<OnEnable>
-				self.label:SetVertexColor(HIGHLIGHT_FONT_COLOR:GetRGB())
-				self.text:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
-			</OnEnable>
+			<OnLoad inherit="prepend">
+				self.Slider:SetScript("OnDisable", function(slider)
+					slider:GetParent().text:SetVertexColor(GRAY_FONT_COLOR:GetRGB())
+				end)
+				self.Slider:SetScript("OnEnable", function(slider)
+					slider:GetParent().text:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+				end)
+			</OnLoad>
 		</Scripts>
-	</Slider>
+	</Frame>
 </Ui>

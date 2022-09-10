@@ -1,13 +1,25 @@
 local addon, L = ...
-local config = CreateFrame("FRAME", "CursorModConfig", InterfaceOptionsFramePanelContainer)
+local config = CreateFrame("FRAME", "CursorModConfig")
 config:Hide()
-config.name = addon
 
 
 config.textures = {
 	"Interface/AddOns/CursorMod/texture/point",
-	"Interface/cursor/point",
-	"Interface/cursor/unablepoint",
+	{
+		{"Interface/cursor/UICursor2x", 261/512, 293/512, 67/256, 99/256},
+		{"Interface/cursor/UICursor2x", 393/512, 441/512, 1/256, 49/256},
+		{"Interface/cursor/UICursor2x", 261/512, 325/512, 1/256, 65/256},
+		{"Interface/cursor/UICursor2x", 1/512, 97/512, 131/256, 227/256},
+		{"Interface/cursor/UICursor2x", 1/512, 129/512, 1/256, 129/256},
+	},
+	{
+		{"Interface/cursor/UICursor2x", 261/512, 293/512, 101/256, 133/256},
+		{"Interface/cursor/UICursor2x", 443/512, 491/512, 1/256, 49/256},
+		{"Interface/cursor/UICursor2x", 327/512, 391/512, 1/256, 65/256},
+		{"Interface/cursor/UICursor2x", 131/512, 227/512, 131/256, 227/256},
+		{"Interface/cursor/UICursor2x", 131/512, 259/512, 1/256, 129/256},
+	},
+	-- "Interface/cursor/unablepoint",
 	"Interface/AddOns/CursorMod/texture/point-inverse",
 	"Interface/AddOns/CursorMod/texture/point-ghostly",
 }
@@ -57,7 +69,7 @@ end
 config:SetScript("OnShow", function(self)
 	-- ADDON INFO
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	info:SetPoint("TOPRIGHT", -16, 16)
+	info:SetPoint("TOPLEFT", -8, 28)
 	info:SetTextColor(.5, .5, .5, 1)
 	info:SetJustifyH("RIGHT")
 	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
@@ -90,7 +102,7 @@ config:SetScript("OnShow", function(self)
 	end
 
 	self.textureBtn = {}
-	local function createTextureButton(texPath, id)
+	local function createTextureButton(id, texPath, left, right, top, bottom)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
 
 		if id == 1 then
@@ -101,12 +113,17 @@ config:SetScript("OnShow", function(self)
 
 		btn.id = id
 		btn.icon:SetTexture(texPath)
+		btn.icon:SetTexCoord(left, right, top, bottom)
 		btn:SetScript("OnClick", textureBtnClick)
 		tinsert(self.textureBtn, btn)
 	end
 
 	for i, texPath in ipairs(self.textures) do
-		createTextureButton(texPath, i)
+		if type(texPath) == "table" then
+			createTextureButton(i, unpack(texPath[1]))
+		else
+			createTextureButton(i, texPath, 0, 1, 0, 1)
+		end
 	end
 
 	self.textureBtn[self.config.texPoint].check:Show()
@@ -136,7 +153,7 @@ config:SetScript("OnShow", function(self)
 
 	-- CHANGE CURSOR SIZE
 	local changeCursorSize = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
-	changeCursorSize:SetPoint("LEFT", sizeCombobox, "RIGHT", 120, 1)
+	changeCursorSize:SetPoint("LEFT", sizeCombobox, "RIGHT", 120, 2)
 	changeCursorSize.Text:SetText(L["Resize cursor"])
 	changeCursorSize:SetChecked(self.config.changeCursorSize)
 	changeCursorSize:SetScript("OnClick", function(self)
@@ -147,25 +164,26 @@ config:SetScript("OnShow", function(self)
 	end)
 
 	-- SCALE
-	local scaleSlider = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
+	local scaleSlider = CreateFrame("FRAME", nil, self, "CursorModSliderTemplate")
 	self.scaleSlider = scaleSlider
 	scaleSlider:SetPoint("TOPLEFT", sizeCombobox, "BOTTOMLEFT", 20, -15)
-	scaleSlider:SetMinMaxValues(.1, 2)
+	local value = math.floor(self.config.scale * 100 + .5) / 100
+	local options = Settings.CreateSliderOptions(.1, 2, .01)
+	scaleSlider:Init(value, options.minValue, options.maxValue, options.steps, options.formatters)
 	scaleSlider.text:SetText(L["Scale"])
-	local scale = math.floor(self.config.scale * 100 + .5) / 100
-	scaleSlider:SetValue(scale)
-	scaleSlider.label:SetText(scale)
-	scaleSlider:SetScript("OnValueChanged", function(self, value)
+	scaleSlider.RightText:SetText(value)
+	scaleSlider.RightText:Show()
+	scaleSlider.OnSliderValueChanged = function(self, value)
 		value = math.floor(value * 100 + .5) / 100
 		config.config.scale = value
 		config:setCursorSettings()
-		self.label:SetText(value)
-		self:SetValue(value)
-	end)
-	scaleSlider:SetEnabled(not self.config.autoScale)
+		self.RightText:SetText(value)
+	end
+	scaleSlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, scaleSlider.OnSliderValueChanged, scaleSlider)
+	scaleSlider:SetEnabled_(not self.config.autoScale)
 
 	-- AUTO SCALE
-	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "OptionsBaseCheckButtonTemplate")
+	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "SettingsCheckBoxTemplate")
 	autoScaleCheckbox:SetPoint("RIGHT", scaleSlider, "LEFT", 0, 0)
 	autoScaleCheckbox.tooltipOwnerPoint = "ANCHOR_TOP"
 	autoScaleCheckbox.tooltipText = L["Autoscaling"]
@@ -173,7 +191,7 @@ config:SetScript("OnShow", function(self)
 	autoScaleCheckbox:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		scaleSlider:SetEnabled(not checked)
+		scaleSlider:SetEnabled_(not checked)
 		config.config.autoScale = checked
 		config:setAutoScale()
 	end)
@@ -181,17 +199,18 @@ config:SetScript("OnShow", function(self)
 	-- OPACITY
 	local opacitySlider = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
 	opacitySlider:SetPoint("TOPLEFT", scaleSlider, "BOTTOMLEFT", 0, -15)
-	opacitySlider:SetMinMaxValues(.1, 1)
+	local options = Settings.CreateSliderOptions(.1, 1, .1)
+	opacitySlider:Init(self.config.opacity, options.minValue, options.maxValue, options.steps, options.formatters)
 	opacitySlider.text:SetText(L["Opacity"])
-	opacitySlider:SetValue(self.config.opacity)
-	opacitySlider.label:SetText(self.config.opacity)
-	opacitySlider:SetScript("OnValueChanged", function(self, value)
+	opacitySlider.RightText:SetText(self.config.opacity)
+	opacitySlider.RightText:Show()
+	opacitySlider.OnSliderValueChanged = function(self, value)
 		value = math.floor(value * 10 + .5) / 10
 		config.config.opacity = value
 		config:setCursorSettings()
-		self.label:SetText(value)
-		self:SetValue(value)
-	end)
+		self.RightText:SetText(value)
+	end
+	opacitySlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, opacitySlider.OnSliderValueChanged, opacitySlider)
 
 	-- COLOR
 	local colorBtn =  CreateFrame("BUTTON", nil, self)
@@ -251,8 +270,7 @@ function config:setAutoScale()
 	if self.config.autoScale then
 		local width
 		if GetCVarBool("gxMaximize") then
-			local _, resolution = GetScreenResolutions(GetCVar("gxMonitor") + 1, true)
-			width = tonumber(resolution:match("%d+"))
+			width = C_VideoOptions.GetGameWindowSizes(GetCVar("gxMonitor"), true)[1].x
 		else
 			width = GetPhysicalScreenSize()
 		end
@@ -282,16 +300,28 @@ end
 function config:setCursorSettings()
 	local size = self.sizes[self.config.size]
 	local scale = self.autoScale or self.config.scale
-	self.cursor:SetTexture(self.textures[self.config.texPoint])
+
+	local textures, left, right, top, bottom = self.textures[self.config.texPoint]
+	if type(textures) == "table" then
+		textures, left, right, top, bottom = unpack(textures[self.config.size + 1])
+	else
+		textures, left, right, top, bottom = textures, 0, 1, 0, 1
+	end
+	
+	self.cursor:SetTexture(textures)
+	self.cursor:SetTexCoord(left, right, top, bottom)
 	self.cursor:SetSize(size, size)
 	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.config.opacity)
 	self.cursor:SetVertexColor(unpack(self.config.color))
 	self.cursor.scale = scale * UIParent:GetScale()
 
+	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
 	if self.config.changeCursorSize then
-		SetCVar("cursorSizePreferred", self.config.size)
-	else
+		if cursorSizePreferred ~= self.config.size then
+			SetCVar("cursorSizePreferred", self.config.size)
+		end
+	elseif cursorSizePreferred ~= -1 then
 		SetCVar("cursorSizePreferred", -1)
 	end
 
@@ -299,7 +329,8 @@ function config:setCursorSettings()
 		if size * scale > 128 then
 			scale = 128 / size
 		end
-		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
+		self.cursorPreview:SetTexture(textures)
+		self.cursorPreview:SetTexCoord(left, right, top, bottom)
 		self.cursorPreview:SetSize(size, size)
 		self.cursorPreview:SetScale(scale)
 		self.cursorPreview:SetAlpha(self.config.opacity)
@@ -313,18 +344,17 @@ end
 
 
 -- ADD CATEGORY
-InterfaceOptions_AddCategory(config)
+local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
+Settings.RegisterAddOnCategory(category)
+-- InterfaceOptions_AddCategory(config)
 
 
 -- OPEN CONFIG
 function config:openConfig()
-	if InterfaceOptionsFrameAddOns:IsVisible() and self:IsVisible() then
-		InterfaceOptionsFrame:Hide()
+	if SettingsPanel:IsVisible() and self:IsVisible() then
+		HideUIPanel(SettingsPanel)
 	else
-		InterfaceOptionsFrame_OpenToCategory(addon)
-		if not InterfaceOptionsFrameAddOns:IsVisible() then
-			InterfaceOptionsFrame_OpenToCategory(addon)
-		end
+		Settings.OpenToCategory(addon)
 	end
 end
 
