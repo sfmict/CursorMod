@@ -307,7 +307,7 @@ function config:setCursorSettings()
 	else
 		textures, left, right, top, bottom = textures, 0, 1, 0, 1
 	end
-	
+
 	self.cursor:SetTexture(textures)
 	self.cursor:SetTexCoord(left, right, top, bottom)
 	self.cursor:SetSize(size, size)
@@ -338,7 +338,8 @@ function config:setCursorSettings()
 	end
 
 	if self.ldbButton then
-		self.ldbButton.icon = self.textures[self.config.texPoint]
+		self.ldbButton.icon = textures
+		self.ldbButton.iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1}
 	end
 end
 
@@ -346,7 +347,6 @@ end
 -- ADD CATEGORY
 local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
 Settings.RegisterAddOnCategory(category)
--- InterfaceOptions_AddCategory(config)
 
 
 -- OPEN CONFIG
@@ -354,7 +354,7 @@ function config:openConfig()
 	if SettingsPanel:IsVisible() and self:IsVisible() then
 		HideUIPanel(SettingsPanel)
 	else
-		Settings.OpenToCategory(addon)
+		Settings.OpenToCategory(addon, true)
 	end
 end
 
@@ -369,22 +369,30 @@ function config:PLAYER_LOGIN()
 	self.PLAYER_LOGIN = nil
 	local ldb = LibStub and LibStub("LibDataBroker-1.1", true)
 	if ldb then
-		local r, g, b = unpack(config.config.color)
+		local r, g, b = unpack(self.config.color)
 		local r2, g2, b2 = 1, 1, 1
-		config.ldbButton = ldb:NewDataObject("CursorMod", {
+
+		local textures, left, right, top, bottom = self.textures[self.config.texPoint]
+		if type(textures) == "table" then
+			textures, left, right, top, bottom = unpack(textures[self.config.size + 1])
+		else
+			textures, left, right, top, bottom = textures, 0, 1, 0, 1
+		end
+
+		self.ldbButton = ldb:NewDataObject("CursorMod", {
 			type = "launcher",
 			text = "CursorMod",
-			icon = config.textures[config.config.texPoint],
-			iconCoords = {0, .9, 0, .9},
+			icon = textures,
+			iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1},
 			iconR = r,
 			iconG = g,
 			iconB = b,
 			OnTooltipShow = function(tooltip)
 				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
 			end,
-			OnClick = function() config:openConfig() end,
+			OnClick = function() self:openConfig() end,
 			OnEnter = function()
-				config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+				self.cursorFrame:SetScript("OnUpdate", function(_, elaps)
 					elaps = elaps / 2
 					if r > 1 then r2 = -1
 					elseif r < 0 then r2 = 1 end
@@ -395,13 +403,13 @@ function config:PLAYER_LOGIN()
 					if b > 1 then b2 = -1
 					elseif b < 0 then b2 = 1 end
 					b = b + b2 * (elaps + elaps / random(3))
-					config.ldbButton.iconR = r
-					config.ldbButton.iconG = g
-					config.ldbButton.iconB = b
+					self.ldbButton.iconR = r
+					self.ldbButton.iconG = g
+					self.ldbButton.iconB = b
 				end)
 			end,
 			OnLeave = function()
-				config.cursorFrame:SetScript("OnUpdate", nil)
+				self.cursorFrame:SetScript("OnUpdate", nil)
 			end,
 		})
 	end
