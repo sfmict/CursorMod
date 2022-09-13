@@ -69,7 +69,7 @@ end
 config:SetScript("OnShow", function(self)
 	-- ADDON INFO
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	info:SetPoint("TOPLEFT", -8, 28)
+	info:SetPoint("TOPLEFT", 4, 20)
 	info:SetTextColor(.5, .5, .5, 1)
 	info:SetJustifyH("RIGHT")
 	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
@@ -346,6 +346,8 @@ end
 
 -- ADD CATEGORY
 local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
+layout:AddAnchorPoint("TOPLEFT", -12, 8)
+layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
 Settings.RegisterAddOnCategory(category)
 
 
