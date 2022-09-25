@@ -183,7 +183,7 @@ config:SetScript("OnShow", function(self)
 	scaleSlider:SetEnabled_(not self.config.autoScale)
 
 	-- AUTO SCALE
-	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "SettingsCheckBoxTemplate")
+	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonArtTemplate")
 	autoScaleCheckbox:SetPoint("RIGHT", scaleSlider, "LEFT", 0, 0)
 	autoScaleCheckbox.tooltipOwnerPoint = "ANCHOR_TOP"
 	autoScaleCheckbox.tooltipText = L["Autoscaling"]
