@@ -69,7 +69,7 @@ end
 config:SetScript("OnShow", function(self)
 	-- ADDON INFO
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	info:SetPoint("TOPLEFT", 4, 20)
+	info:SetPoint("TOPLEFT", 40, 20)
 	info:SetTextColor(.5, .5, .5, 1)
 	info:SetJustifyH("RIGHT")
 	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
