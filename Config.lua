@@ -67,6 +67,11 @@ end
 
 
 config:SetScript("OnShow", function(self)
+	self:SetScript("OnShow", function(self)
+		self:SetPoint("TOPLEFT", -12, 8)
+	end)
+	self:SetPoint("TOPLEFT", -12, 8)
+
 	-- ADDON INFO
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	info:SetPoint("TOPLEFT", 40, 20)
@@ -260,9 +265,6 @@ config:SetScript("OnShow", function(self)
 
 	-- SET SETTINGS
 	self:setCursorSettings()
-
-	-- RESET ONSHOW
-	self:SetScript("OnShow", nil)
 end)
 
 
@@ -347,8 +349,8 @@ end
 -- ADD CATEGORY
 local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
 category.ID = addon
-layout:AddAnchorPoint("TOPLEFT", -12, 8)
-layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
+-- layout:AddAnchorPoint("TOPLEFT", -12, 8)
+-- layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
 Settings.RegisterAddOnCategory(category)
 
 
