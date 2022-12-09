@@ -300,7 +300,7 @@ end
 
 
 function config:setCursorSettings()
-	local size = self.sizes[self.config.size]
+	local size = self.sizes[self.config.size] or 32
 	local scale = self.autoScale or self.config.scale
 
 	local textures, left, right, top, bottom = self.textures[self.config.texPoint]
