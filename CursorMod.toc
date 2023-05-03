@@ -1,7 +1,8 @@
-## Interface: 100007
+## Interface: 100100
 ## Title: CursorMod
 ## Author: sfmict
 ## Version: @project-version@
+## IconTexture: Interface\AddOns\CursorMod\texture\point
 ## Notes: Makes mouse pointer remain on screen while mouselook/steering
 ## SavedVariables: CursorModDB
 locales.xml
