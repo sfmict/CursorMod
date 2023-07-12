@@ -77,7 +77,7 @@ config:SetScript("OnShow", function(self)
 	info:SetPoint("TOPLEFT", 40, 20)
 	info:SetTextColor(.5, .5, .5, 1)
 	info:SetJustifyH("RIGHT")
-	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
+	info:SetText(("%s %s: %s"):format(C_AddOns.GetAddOnMetadata(addon, "Version"), L["author"], C_AddOns.GetAddOnMetadata(addon, "Author")))
 
 	-- TITLE
 	local title = self:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -393,7 +393,7 @@ function config:PLAYER_LOGIN()
 			iconG = g,
 			iconB = b,
 			OnTooltipShow = function(tooltip)
-				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, C_AddOns.GetAddOnMetadata(addon, "Version")))
 			end,
 			OnClick = function() self:openConfig() end,
 			OnEnter = function()
