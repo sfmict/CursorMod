@@ -4,6 +4,8 @@ local cursorFrame = config.cursorFrame
 cursorFrame:SetFrameStrata("TOOLTIP")
 config.cursor = cursorFrame:CreateTexture(nil, "OVERLAY")
 local cursor = config.cursor
+cursor:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT")
+cursor:Hide()
 cursor[1], cursor[2] = true, true
 
 
