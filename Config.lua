@@ -21,15 +21,16 @@ function config:ADDON_LOADED(addonName)
 	if addonName == addon then
 		self:UnregisterEvent("ADDON_LOADED")
 		self.ADDON_LOADED = nil
+		self.sizes = {[0] = 32, 48, 64, 96, 128}
 
 		CursorModDB = CursorModDB or {}
 		self.globalDB = CursorModDB
 		self.globalDB.config = self.globalDB.config or {}
 		self.config = self.globalDB.config
 		self.config.texPoint = self.config.texPoint or 1
-		if self.config.size == nil then
+		if not self.sizes[self.config.size] then
 			local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
-			if cursorSizePreferred == -1 then cursorSizePreferred = 0 end
+			if not self.sizes[cursorSizePreferred] then cursorSizePreferred = 0 end
 			self.config.size = cursorSizePreferred
 		end
 		if type(self.config.autoScale) ~= "boolean" then
@@ -39,7 +40,6 @@ function config:ADDON_LOADED(addonName)
 		self.config.opacity = self.config.opacity or 1
 		self.config.color = self.config.color or {1, 1, 1}
 
-		self.sizes = {[0] = 32, 48, 64, 96, 128}
 		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setAutoScale()
