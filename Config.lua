@@ -558,7 +558,7 @@ function config:setCursorSettings()
 
 	local r, g, b
 	if self.pConfig.useClassColor then
-		r, g, b = C_ClassColor.GetClassColor(select(2, UnitClass("player"))):GetRGB()
+		r, g, b = GetClassColor(select(2, UnitClass("player")))
 	else
 		r, g, b = unpack(self.pConfig.color)
 	end
