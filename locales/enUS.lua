@@ -13,6 +13,7 @@ L["Resize cursor"] = "Resize cursor"
 L["Autoscaling"] = "Autoscaling"
 L["Scale"] = "Scale"
 L["Opacity"] = "Opacity"
+L["Use class color"] = "Use class color"
 L["Show only in combat"] = "Show only in combat"
 
 setmetatable(L, {__index = function(self, key)

@@ -17,4 +17,5 @@ L["Are you sure you want to delete profile %s?"] = "你确定要删除配置文�
 -- L["Autoscaling"] = ""
 -- L["Scale"] = ""
 -- L["Opacity"] = ""
+-- L["Use class color"] = ""
 -- L["Show only in combat"] = ""
