@@ -17,4 +17,5 @@ L["Are you sure you want to delete profile %s?"] = "Êtes-vous sûr de vouloir s
 -- L["Autoscaling"] = ""
 -- L["Scale"] = ""
 -- L["Opacity"] = ""
+-- L["Use class color"] = ""
 -- L["Show only in combat"] = ""

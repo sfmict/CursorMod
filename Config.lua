@@ -130,9 +130,6 @@ function config:createProfile(copy)
 			tinsert(self.profiles, profile)
 			sort(self.profiles, function(a, b) return a.name < b.name end)
 			self:setProfile(text)
-			self:setAutoScale()
-			self:setCombatTracking()
-			if self.refresh then self:refresh() end
 		end
 	end)
 	if dialog and self.lastProfileName then
@@ -450,6 +447,19 @@ config:SetScript("OnShow", function(self)
 		config:setCursorSettings()
 	end)
 
+	-- USE CLASS COLOR
+	local useClassColor = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
+	useClassColor:SetPoint("LEFT", btnResetColor, "RIGHT", 10, 0)
+	useClassColor.Text:SetText(L["Use class color"])
+	useClassColor:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		colorBtn:SetEnabled(not checked)
+		btnResetColor:SetEnabled(not checked)
+		config.pConfig.useClassColor = checked
+		config:setCursorSettings()
+	end)
+
 	-- SHOW ONLY IN COMBAT
 	local showOnlyInCombat = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
 	showOnlyInCombat:SetPoint("TOPLEFT", previewBg, "BOTTOMLEFT", 0, -15)
@@ -491,7 +501,12 @@ config:SetScript("OnShow", function(self)
 		opacitySlider:Init(self.pConfig.opacity, options.minValue, options.maxValue, options.steps, options.formatters)
 		opacitySlider.RightText:SetText(self.pConfig.opacity)
 
+		colorBtn:SetEnabled(not self.pConfig.useClassColor)
 		colorTex:SetVertexColor(unpack(self.pConfig.color))
+
+		btnResetColor:SetEnabled(not self.pConfig.useClassColor)
+
+		useClassColor:SetChecked(self.pConfig.useClassColor)
 
 		showOnlyInCombat:SetChecked(self.pConfig.showOnlyInCombat)
 	end
@@ -541,12 +556,19 @@ function config:setCursorSettings()
 		textures, left, right, top, bottom = textures, 0, 1, 0, 1
 	end
 
+	local r, g, b
+	if self.pConfig.useClassColor then
+		r, g, b = GetClassColor(select(2, UnitClass("player")))
+	else
+		r, g, b = unpack(self.pConfig.color)
+	end
+
 	self.cursor:SetTexture(textures)
 	self.cursor:SetTexCoord(left, right, top, bottom)
 	self.cursor:SetSize(size, size)
 	self.cursor:SetScale(scale)
 	self.cursor:SetAlpha(self.pConfig.opacity)
-	self.cursor:SetVertexColor(unpack(self.pConfig.color))
+	self.cursor:SetVertexColor(r, g, b)
 	self.cursor.scale = scale * UIParent:GetScale()
 
 	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
@@ -567,7 +589,7 @@ function config:setCursorSettings()
 		self.cursorPreview:SetSize(size, size)
 		self.cursorPreview:SetScale(scale)
 		self.cursorPreview:SetAlpha(self.pConfig.opacity)
-		self.cursorPreview:SetVertexColor(unpack(self.pConfig.color))
+		self.cursorPreview:SetVertexColor(r, g, b)
 	end
 
 	if self.ldbButton then
