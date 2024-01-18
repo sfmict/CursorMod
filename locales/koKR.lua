@@ -17,4 +17,5 @@ L["Are you sure you want to delete profile %s?"] = "프로필 %s을 삭제하시
 -- L["Autoscaling"] = ""
 -- L["Scale"] = ""
 -- L["Opacity"] = ""
+-- L["Use class color"] = ""
 -- L["Show only in combat"] = ""
