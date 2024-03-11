@@ -178,7 +178,7 @@ config:SetScript("OnShow", function(self)
 	end)
 	self:SetPoint("TOPLEFT", -12, 8)
 
-	local lsfdd = LibStub("LibSFDropDown-1.4")
+	local lsfdd = LibStub("LibSFDropDown-1.5")
 
 	self.addonName = ("%s_ADDON_"):format(addon:upper())
 	StaticPopupDialogs[self.addonName.."NEW_PROFILE"] = {
