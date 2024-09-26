@@ -392,11 +392,7 @@ config:SetScript("OnShow", function(self)
 	autoScaleCheckbox:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		if scaleSlider.SetEnabled_ then
-			scaleSlider:SetEnabled_(not checked)
-		else
-			scaleSlider:SetEnabled(not checked)
-		end
+		scaleSlider:SetEnabled(not checked)
 		config.pConfig.autoScale = checked
 		config:setAutoScale()
 	end)
@@ -497,11 +493,7 @@ config:SetScript("OnShow", function(self)
 		local options = Settings.CreateSliderOptions(.1, 2, .01)
 		scaleSlider:Init(value, options.minValue, options.maxValue, options.steps, options.formatters)
 		scaleSlider.RightText:SetText(value)
-		if scaleSlider.SetEnabled_ then
-			scaleSlider:SetEnabled_(not self.pConfig.autoScale)
-		else
-			scaleSlider:SetEnabled(not self.pConfig.autoScale)
-		end
+		scaleSlider:SetEnabled(not self.pConfig.autoScale)
 
 		autoScaleCheckbox:SetChecked(self.pConfig.autoScale)
 
