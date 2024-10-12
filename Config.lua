@@ -22,6 +22,8 @@ config.textures = {
 	-- "Interface/cursor/unablepoint",
 	"Interface/AddOns/CursorMod/texture/point-inverse",
 	"Interface/AddOns/CursorMod/texture/point-ghostly",
+	{"talents-search-notonactionbar", 84, 84, -2, 3},
+	{"talents-search-notonactionbarhidden", 84, 84, -2, 3},
 }
 
 
@@ -308,16 +310,15 @@ config:SetScript("OnShow", function(self)
 	profilesText:SetText(L["Profile"])
 
 	-- PREVIEW BACKGROUND
-	local previewBg = self:CreateTexture(nil, "BACKGROUND")
-	previewBg:SetTexture("Interface/ChatFrame/ChatFrameBackground")
-	previewBg:SetVertexColor(.1, .1, .1, .5)
-	previewBg:SetSize(128, 128)
-	previewBg:SetPoint("TOPLEFT", 16, -110)
+	self.previewBg = self:CreateTexture(nil, "BACKGROUND")
+	self.previewBg:SetTexture("Interface/ChatFrame/ChatFrameBackground")
+	self.previewBg:SetVertexColor(.1, .1, .1, .5)
+	self.previewBg:SetSize(128, 128)
+	self.previewBg:SetPoint("TOPLEFT", 16, -110)
 
 	-- PREVIEW CURSOR
-	local cursorPreview = self:CreateTexture(nil, "ARTWORK")
-	self.cursorPreview = cursorPreview
-	cursorPreview:SetPoint("CENTER", previewBg)
+	self.cursorPreview = self:CreateTexture(nil, "ARTWORK")
+	self.cursorPreview:SetPoint("CENTER", self.previewBg)
 
 	-- TEXTURE SELECT
 	local function textureBtnClick(btn)
@@ -333,29 +334,33 @@ config:SetScript("OnShow", function(self)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
 
 		if id == 1 then
-			btn:SetPoint("BOTTOMLEFT", previewBg, "TOPLEFT", 0, 20)
+			btn:SetPoint("BOTTOMLEFT", self.previewBg, "TOPLEFT", 0, 20)
 		else
 			btn:SetPoint("LEFT", self.textureBtn[id - 1], "RIGHT")
 		end
 
 		btn.id = id
-		btn.icon:SetTexture(texPath)
-		btn.icon:SetTexCoord(left, right, top, bottom)
+		if C_Texture.GetAtlasInfo(texPath) then
+			btn.icon:SetAtlas(texPath)
+			btn.icon:SetSize(left, right)
+			btn.icon:SetScale(22/32)
+			btn.icon:ClearAllPoints()
+			btn.icon:SetPoint("CENTER", top, bottom)
+		else
+			btn.icon:SetTexture(texPath)
+			btn.icon:SetTexCoord(left, right, top, bottom)
+		end
 		btn:SetScript("OnClick", textureBtnClick)
 		tinsert(self.textureBtn, btn)
 	end
 
-	for i, texPath in ipairs(self.textures) do
-		if type(texPath) == "table" then
-			createTextureButton(i, unpack(texPath[1]))
-		else
-			createTextureButton(i, texPath, 0, 1, 0, 1)
-		end
+	for i = 1, #self.textures do
+		createTextureButton(i, self:getTexInfo(i))
 	end
 
 	-- SIZE COMBOBOX
 	local sizeCombobox = lsfdd:CreateButton(self)
-	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 30, 3)
+	sizeCombobox:SetPoint("TOPLEFT", self.previewBg, "TOPRIGHT", 30, 3)
 
 	sizeCombobox:ddSetInitFunc(function(self, level)
 		local info = {}
@@ -475,7 +480,7 @@ config:SetScript("OnShow", function(self)
 
 	-- SHOW ONLY IN COMBAT
 	local showOnlyInCombat = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
-	showOnlyInCombat:SetPoint("TOPLEFT", previewBg, "BOTTOMLEFT", 0, -15)
+	showOnlyInCombat:SetPoint("TOPLEFT", self.previewBg, "BOTTOMLEFT", 0, -15)
 	showOnlyInCombat.Text:SetText(L["Show only in combat"])
 	showOnlyInCombat:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
@@ -549,11 +554,25 @@ function config:setCombatTracking()
 	if self.pConfig.showOnlyInCombat then
 		self.cursorFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 		self.cursorFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-		self.cursor[3] = not InCombatLockdown()
+		self.cursorFrame[3] = not InCombatLockdown()
 	else
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_DISABLED")
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
-		self.cursor[3] = false
+		self.cursorFrame[3] = false
+	end
+end
+
+
+function config:getTexInfo(index)
+	local texture = self.textures[index]
+	if type(texture) == "table" then
+		if type(texture[1]) == "table" then
+			return unpack(texture[self.pConfig.size + 1])
+		else
+			return unpack(texture)
+		end
+	else
+		return texture, 0, 1, 0, 1
 	end
 end
 
@@ -561,13 +580,8 @@ end
 function config:setCursorSettings()
 	local size = self.sizes[self.pConfig.size] or 32
 	local scale = self.autoScale or self.pConfig.scale
-
-	local textures, left, right, top, bottom = self.textures[self.pConfig.texPoint]
-	if type(textures) == "table" then
-		textures, left, right, top, bottom = unpack(textures[self.pConfig.size + 1])
-	else
-		textures, left, right, top, bottom = textures, 0, 1, 0, 1
-	end
+	local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
+	local atlasInfo = C_Texture.GetAtlasInfo(texture)
 
 	local r, g, b
 	if self.pConfig.useClassColor then
@@ -576,13 +590,24 @@ function config:setCursorSettings()
 		r, g, b = unpack(self.pConfig.color)
 	end
 
-	self.cursor:SetTexture(textures)
-	self.cursor:SetTexCoord(left, right, top, bottom)
-	self.cursor:SetSize(size, size)
-	self.cursor:SetScale(scale)
+	if atlasInfo then
+		self.cursor:SetTexCoord(0, 1, 0, 1)
+		self.cursor:SetAtlas(texture)
+		self.cursor:SetSize(left, right)
+		self.cursor:SetPoint("CENTER", top, bottom)
+		self.cursor:SetScale(size / 32)
+	else
+		self.cursor:SetTexture(texture)
+		self.cursor:SetTexCoord(left, right, top, bottom)
+		self.cursor:SetSize(size, size)
+		self.cursor:SetPoint("CENTER")
+		self.cursor:SetScale(1)
+	end
 	self.cursor:SetAlpha(self.pConfig.opacity)
 	self.cursor:SetVertexColor(r, g, b)
-	self.cursor.scale = scale * UIParent:GetScale()
+	self.cursorFrame:SetScale(scale)
+	self.cursorFrame.scale = scale * UIParent:GetScale()
+	self.cursorFrame:SetSize(size, size)
 
 	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
 	if self.pConfig.changeCursorSize then
@@ -597,16 +622,41 @@ function config:setCursorSettings()
 		if size * scale > 128 then
 			scale = 128 / size
 		end
-		self.cursorPreview:SetTexture(textures)
-		self.cursorPreview:SetTexCoord(left, right, top, bottom)
-		self.cursorPreview:SetSize(size, size)
-		self.cursorPreview:SetScale(scale)
+		if atlasInfo then
+			self.cursorPreview:SetTexCoord(0, 1, 0, 1)
+			self.cursorPreview:SetAtlas(texture)
+			self.cursorPreview:SetSize(left, right)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
+			self.cursorPreview:SetScale(size / 32 * scale)
+		else
+			self.cursorPreview:SetTexture(texture)
+			self.cursorPreview:SetTexCoord(left, right, top, bottom)
+			self.cursorPreview:SetSize(size, size)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg)
+			self.cursorPreview:SetScale(scale)
+		end
 		self.cursorPreview:SetAlpha(self.pConfig.opacity)
 		self.cursorPreview:SetVertexColor(r, g, b)
 	end
 
 	if self.ldbButton then
-		self.ldbButton.icon = textures
+		if atlasInfo then
+			local h = (left - 32) / 2
+			local v = (right - 32) / 2
+			local kLeft = (h - top) / left
+			local kRight = (h + top) / left
+			local kTop = (v + bottom) / right
+			local kBottom = (v - bottom) / right
+			local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
+			local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
+			texture = atlasInfo.file
+			left = atlasInfo.leftTexCoord + width * kLeft
+			right = atlasInfo.rightTexCoord - width * kRight
+			top = atlasInfo.topTexCoord + height * kTop
+			bottom = atlasInfo.bottomTexCoord - height * kBottom
+		end
+
+		self.ldbButton.icon = texture
 		self.ldbButton.iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1}
 	end
 end
@@ -640,21 +690,24 @@ function config:PLAYER_LOGIN()
 	self.PLAYER_LOGIN = nil
 	local ldb = LibStub("LibDataBroker-1.1", true)
 	if ldb then
+		local updateFrame = CreateFrame("FRAME")
 		local r, g, b = unpack(self.pConfig.color)
 		local r2, g2, b2 = 1, 1, 1
-
-		local textures, left, right, top, bottom = self.textures[self.pConfig.texPoint]
-		if type(textures) == "table" then
-			textures, left, right, top, bottom = unpack(textures[self.pConfig.size + 1])
-		else
-			textures, left, right, top, bottom = textures, 0, 1, 0, 1
+		local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
+		local atlasInfo = C_Texture.GetAtlasInfo(texture)
+		if atlasInfo then
+			texture = atlasInfo.file
+			left = atlasInfo.leftTexCoord
+			right = atlasInfo.rightTexCoord
+			top = atlasInfo.topTexCoord
+			bottom = atlasInfo.bottomTexCoord
 		end
 
 		self.ldbButton = ldb:NewDataObject("CursorMod", {
 			type = "launcher",
 			text = "CursorMod",
-			icon = textures,
-			iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1},
+			icon = texture,
+			iconCoords = {left, right, top, bottom},
 			iconR = r,
 			iconG = g,
 			iconB = b,
@@ -663,7 +716,7 @@ function config:PLAYER_LOGIN()
 			end,
 			OnClick = function() self:openConfig() end,
 			OnEnter = function()
-				self.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+				updateFrame:SetScript("OnUpdate", function(_, elaps)
 					elaps = elaps / 2
 					if r > 1 then r2 = -1
 					elseif r < 0 then r2 = 1 end
@@ -680,7 +733,7 @@ function config:PLAYER_LOGIN()
 				end)
 			end,
 			OnLeave = function()
-				self.cursorFrame:SetScript("OnUpdate", nil)
+				updateFrame:SetScript("OnUpdate", nil)
 			end,
 		})
 	end
