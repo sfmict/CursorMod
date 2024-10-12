@@ -696,18 +696,26 @@ function config:PLAYER_LOGIN()
 		local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
 		local atlasInfo = C_Texture.GetAtlasInfo(texture)
 		if atlasInfo then
+			local h = (left - 32) / 2
+			local v = (right - 32) / 2
+			local kLeft = (h - top) / left
+			local kRight = (h + top) / left
+			local kTop = (v + bottom) / right
+			local kBottom = (v - bottom) / right
+			local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
+			local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
 			texture = atlasInfo.file
-			left = atlasInfo.leftTexCoord
-			right = atlasInfo.rightTexCoord
-			top = atlasInfo.topTexCoord
-			bottom = atlasInfo.bottomTexCoord
+			left = atlasInfo.leftTexCoord + width * kLeft
+			right = atlasInfo.rightTexCoord - width * kRight
+			top = atlasInfo.topTexCoord + height * kTop
+			bottom = atlasInfo.bottomTexCoord - height * kBottom
 		end
 
 		self.ldbButton = ldb:NewDataObject("CursorMod", {
 			type = "launcher",
 			text = "CursorMod",
 			icon = texture,
-			iconCoords = {left, right, top, bottom},
+			iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1},
 			iconR = r,
 			iconG = g,
 			iconB = b,
