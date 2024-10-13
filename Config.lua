@@ -85,6 +85,7 @@ function config:checkProfile(profile)
 	profile.config.scale = profile.config.scale or 1
 	profile.config.opacity = profile.config.opacity or 1
 	profile.config.color = profile.config.color or {1, 1, 1}
+	profile.config.lookStartDelta = profile.config.lookStartDelta or tonumber(GetCVar("CursorFreelookStartDelta")) or .001
 end
 
 
@@ -489,6 +490,19 @@ config:SetScript("OnShow", function(self)
 		config:setCombatTracking()
 	end)
 
+	-- CursorFreelookStartDelta
+	local cursorDelta = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
+	cursorDelta:SetPoint("TOPLEFT", showOnlyInCombat, "BOTTOMLEFT", 0, -15)
+	cursorDelta.text:SetText(L["Cursor freelook start delta"])
+	cursorDelta.RightText:Show()
+	cursorDelta.OnSliderValueChanged = function(self, value)
+		value = math.floor(value * 10000 + .5) / 10000
+		config.pConfig.lookStartDelta = value
+		config:setCursorSettings()
+		self.RightText:SetText(value)
+	end
+	cursorDelta:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, cursorDelta.OnSliderValueChanged, cursorDelta)
+
 	-- SET SETTINGS
 	self:setCursorSettings()
 
@@ -515,7 +529,7 @@ config:SetScript("OnShow", function(self)
 
 		autoScaleCheckbox:SetChecked(self.pConfig.autoScale)
 
-		local options = Settings.CreateSliderOptions(.1, 1, .1)
+		options = Settings.CreateSliderOptions(.1, 1, .1)
 		opacitySlider:Init(self.pConfig.opacity, options.minValue, options.maxValue, options.steps, options.formatters)
 		opacitySlider.RightText:SetText(self.pConfig.opacity)
 
@@ -527,6 +541,10 @@ config:SetScript("OnShow", function(self)
 		useClassColor:SetChecked(self.pConfig.useClassColor)
 
 		showOnlyInCombat:SetChecked(self.pConfig.showOnlyInCombat)
+
+		options = Settings.CreateSliderOptions(0, .01, .0001)
+		cursorDelta:Init(self.pConfig.lookStartDelta, options.minValue, options.maxValue, options.steps, options.formatters)
+		cursorDelta.RightText:SetText(self.pConfig.lookStartDelta)
 	end
 	self:refresh()
 end)
@@ -617,6 +635,7 @@ function config:setCursorSettings()
 	elseif cursorSizePreferred ~= -1 then
 		SetCVar("cursorSizePreferred", -1)
 	end
+	SetCVar("CursorFreelookStartDelta", self.pConfig.lookStartDelta)
 
 	if self.cursorPreview then
 		if size * scale > 128 then
