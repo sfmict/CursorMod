@@ -1,4 +1,5 @@
-local addon, L = ...
+local addon, ns = ...
+local L = ns.L
 local config = CreateFrame("FRAME", "CursorModConfig")
 config:Hide()
 
