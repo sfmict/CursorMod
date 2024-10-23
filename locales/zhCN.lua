@@ -2,7 +2,8 @@ if GetLocale() ~= "zhCN" then
 	return
 end
 
-local _, L = ...
+local _, ns = ...
+local L = ns.L
 
 L["author"] = "作者"
 L["%s Configuration"] = "%s 配置"
@@ -19,3 +20,4 @@ L["Are you sure you want to delete profile %s?"] = "你确定要删除配置文�
 -- L["Opacity"] = ""
 -- L["Use class color"] = ""
 -- L["Show only in combat"] = ""
+-- L["Cursor freelook start delta"] = ""
