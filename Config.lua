@@ -14,6 +14,23 @@ config.textures = {
 	{"talents-search-notonactionbarhidden", 84, 84, -2, 3},
 }
 
+local customAtlases = {
+	["talents-search-notonactionbar"] = {
+		["file"] = "Interface/AddOns/CursorMod/texture/talents",
+		["rightTexCoord"] = 0.36865234375,
+		["topTexCoord"] = 0.8017578125,
+		["leftTexCoord"] = 0.30712890625,
+		["bottomTexCoord"] = 0.9248046875,
+	},
+	["talents-search-notonactionbarhidden"] = {
+		["file"] = "Interface/AddOns/CursorMod/texture/talents",
+		["rightTexCoord"] = 0.43212890625,
+		["topTexCoord"] = 0.1708984375,
+		["leftTexCoord"] = 0.37060546875,
+		["bottomTexCoord"] = 0.2939453125,
+	},
+}
+
 
 config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
 config:RegisterEvent("ADDON_LOADED")
@@ -335,6 +352,14 @@ config:SetScript("OnShow", function(self)
 			btn.icon:SetScale(22/32)
 			btn.icon:ClearAllPoints()
 			btn.icon:SetPoint("CENTER", top, bottom)
+		elseif customAtlases[texPath] then
+			local atlasInfo = customAtlases[texPath]
+			btn.icon:SetTexture(atlasInfo.file)
+			btn.icon:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+			btn.icon:SetSize(left, right)
+			btn.icon:SetScale(22/32)
+			btn.icon:ClearAllPoints()
+			btn.icon:SetPoint("CENTER", top, bottom)
 		else
 			btn.icon:SetTexture(texPath)
 			btn.icon:SetTexCoord(left, right, top, bottom)
@@ -602,6 +627,13 @@ function config:setCursorSettings()
 		self.cursor:SetSize(left, right)
 		self.cursor:SetPoint("CENTER", top, bottom)
 		self.cursor:SetScale(size / 32)
+	elseif customAtlases[texture] then
+		local atlasInfo = customAtlases[texture]
+		self.cursor:SetTexture(atlasInfo.file)
+		self.cursor:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+		self.cursor:SetSize(left, right)
+		self.cursor:SetPoint("CENTER", top, bottom)
+		self.cursor:SetScale(size / 32)
 	else
 		self.cursor:SetTexture(texture)
 		self.cursor:SetTexCoord(left, right, top, bottom)
@@ -635,6 +667,13 @@ function config:setCursorSettings()
 			self.cursorPreview:SetSize(left, right)
 			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
 			self.cursorPreview:SetScale(size / 32 * scale)
+		elseif customAtlases[texture] then
+			local atlasInfo = customAtlases[texture]
+			self.cursorPreview:SetTexture(atlasInfo.file)
+			self.cursorPreview:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+			self.cursorPreview:SetSize(left, right)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
+			self.cursorPreview:SetScale(size / 32 * scale)
 		else
 			self.cursorPreview:SetTexture(texture)
 			self.cursorPreview:SetTexCoord(left, right, top, bottom)
@@ -647,6 +686,7 @@ function config:setCursorSettings()
 	end
 
 	if self.ldbButton then
+		atlasInfo = atlasInfo or customAtlases[texture]
 		if atlasInfo then
 			local h = (left - 32) / 2
 			local v = (right - 32) / 2
@@ -701,7 +741,7 @@ function config:PLAYER_LOGIN()
 		local r, g, b = unpack(self.pConfig.color)
 		local r2, g2, b2 = 1, 1, 1
 		local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
-		local atlasInfo = C_Texture.GetAtlasInfo(texture)
+		local atlasInfo = C_Texture.GetAtlasInfo(texture) or customAtlases[texture]
 		if atlasInfo then
 			local h = (left - 32) / 2
 			local v = (right - 32) / 2
