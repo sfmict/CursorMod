@@ -2,7 +2,8 @@ if GetLocale() ~= "koKR" then
 	return
 end
 
-local _, L = ...
+local _, ns = ...
+local L = ns.L
 
 L["author"] = "제작자"
 L["%s Configuration"] = "%s 설정"
@@ -19,3 +20,4 @@ L["Are you sure you want to delete profile %s?"] = "프로필 %s을 삭제하시
 -- L["Opacity"] = ""
 -- L["Use class color"] = ""
 -- L["Show only in combat"] = ""
+-- L["Cursor freelook start delta"] = ""
