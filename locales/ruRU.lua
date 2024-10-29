@@ -2,7 +2,8 @@ if GetLocale() ~= "ruRU" then
 	return
 end
 
-local _, L = ...
+local _, ns = ...
+local L = ns.L
 
 L["author"] = "Автор"
 L["%s Configuration"] = "Конфигурация %s"
@@ -19,3 +20,4 @@ L["Scale"] = "Масштаб"
 L["Opacity"] = "Прозрачность"
 L["Use class color"] = "Использовать цвет класса"
 L["Show only in combat"] = "Показывать только в бою"
+L["Cursor freelook start delta"] = "Начальная дельта свободного взгляда курсором"

@@ -2,7 +2,8 @@ if GetLocale() ~= "esES" then
 	return
 end
 
-local _, L = ...
+local _, ns = ...
+local L = ns.L
 
 L["author"] = "Autor"
 L["%s Configuration"] = "Configuración de %s"
@@ -19,3 +20,4 @@ L["Are you sure you want to delete profile %s?"] = "¿Confirma que quiere borrar
 -- L["Opacity"] = ""
 -- L["Use class color"] = ""
 -- L["Show only in combat"] = ""
+-- L["Cursor freelook start delta"] = ""
