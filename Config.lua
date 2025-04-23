@@ -132,6 +132,7 @@ end
 function config:createProfile(copy)
 	local dialog = StaticPopup_Show(self.addonName.."NEW_PROFILE", nil, nil, function(popup)
 		local text = popup.editBox:GetText()
+		popup:Hide()
 		if text and text ~= "" then
 			for _, profile in ipairs(config.profiles) do
 				if profile.name == text then
@@ -194,7 +195,7 @@ config:SetScript("OnShow", function(self)
 		editBoxWidth = 350,
 		hideOnEscape = 1,
 		whileDead = 1,
-		OnAccept = function(self, cb) self:Hide() cb(self) end,
+		OnAccept = function(self, cb) cb(self) end,
 		EditBoxOnEnterPressed = function(self)
 			StaticPopup_OnClick(self:GetParent(), 1)
 		end,
@@ -225,7 +226,7 @@ config:SetScript("OnShow", function(self)
 		button2 = CANCEL,
 		hideOnEscape = 1,
 		whileDead = 1,
-		OnAccept = function(self, cb) self:Hide() cb() end,
+		OnAccept = function(self, cb) cb() end,
 	}
 
 	-- ADDON INFO
