@@ -131,7 +131,7 @@ end
 
 function config:createProfile(copy)
 	local dialog = StaticPopup_Show(self.addonName.."NEW_PROFILE", nil, nil, function(popup)
-		local text = popup.editBox:GetText()
+		local text = popup.EditBox:GetText()
 		popup:Hide()
 		if text and text ~= "" then
 			for _, profile in ipairs(config.profiles) do
@@ -151,8 +151,8 @@ function config:createProfile(copy)
 		end
 	end)
 	if dialog and self.lastProfileName then
-		dialog.editBox:SetText(self.lastProfileName)
-		dialog.editBox:HighlightText()
+		dialog.EditBox:SetText(self.lastProfileName)
+		dialog.EditBox:HighlightText()
 		self.lastProfileName = nil
 	end
 end
@@ -203,8 +203,8 @@ config:SetScript("OnShow", function(self)
 			self:GetParent():Hide()
 		end,
 		OnShow = function(self)
-			self.editBox:SetText(UnitName("player").." - "..GetRealmName())
-			self.editBox:HighlightText()
+			self.EditBox:SetText(UnitName("player").." - "..GetRealmName())
+			self.EditBox:HighlightText()
 		end,
 	}
 	local function profileExistsAccept(popup, data)
