@@ -25,7 +25,32 @@ config.textures = {
 	"Interface/AddOns/CursorMod/texture/point-ghostly",
 	{"talents-search-notonactionbar", 84, 84, -2, 3},
 	{"talents-search-notonactionbarhidden", 84, 84, -2, 3},
+	{"Interface/AddOns/CursorMod/texture/midnight-glow.png", 64, 64, 0, 0},
+	"Interface/AddOns/CursorMod/texture/midnight-inverse.png",
+	{"Interface/AddOns/CursorMod/texture/midnight-inverse-glow.png", 64, 64, 0, 0},
 }
+
+
+local function setTex(tex, path, size, rFrame, left, right, top, bottom)
+	local atlasInfo = C_Texture.GetAtlasInfo(path)
+	if atlasInfo then
+		tex:SetAtlas(path)
+	else
+		tex:SetTexture(path)
+	end
+	tex:ClearAllPoints()
+	if atlasInfo or left > 1 then
+		tex:SetTexCoord(0, 1, 0, 1)
+		tex:SetSize(left, right)
+		tex:SetScale(size / 32)
+		tex:SetPoint("CENTER", rFrame, top, bottom)
+	else
+		tex:SetScale(1)
+		tex:SetSize(size, size)
+		tex:SetTexCoord(left, right, top, bottom)
+		tex:SetPoint("CENTER", rFrame)
+	end
+end
 
 
 config:SetScript("OnEvent", function(self, event, ...) self[event](self, ...) end)
@@ -333,7 +358,7 @@ config:SetScript("OnShow", function(self)
 	end
 
 	self.textureBtn = {}
-	local function createTextureButton(id, texPath, left, right, top, bottom)
+	local function createTextureButton(id, texPath, ...)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
 
 		if id == 1 then
@@ -343,16 +368,7 @@ config:SetScript("OnShow", function(self)
 		end
 
 		btn.id = id
-		if C_Texture.GetAtlasInfo(texPath) then
-			btn.icon:SetAtlas(texPath)
-			btn.icon:SetSize(left, right)
-			btn.icon:SetScale(22/32)
-			btn.icon:ClearAllPoints()
-			btn.icon:SetPoint("CENTER", top, bottom)
-		else
-			btn.icon:SetTexture(texPath)
-			btn.icon:SetTexCoord(left, right, top, bottom)
-		end
+		setTex(btn.icon, texPath, 22, btn, ...)
 		btn:SetScript("OnClick", textureBtnClick)
 		tinsert(self.textureBtn, btn)
 	end
@@ -600,8 +616,7 @@ end
 function config:setCursorSettings()
 	local size = self.sizes[self.pConfig.size] or 32
 	local scale = self.autoScale or self.pConfig.scale
-	local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
-	local atlasInfo = C_Texture.GetAtlasInfo(texture)
+	local texPath, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
 
 	local r, g, b
 	if self.pConfig.useClassColor then
@@ -610,19 +625,7 @@ function config:setCursorSettings()
 		r, g, b = unpack(self.pConfig.color)
 	end
 
-	if atlasInfo then
-		self.cursor:SetTexCoord(0, 1, 0, 1)
-		self.cursor:SetAtlas(texture)
-		self.cursor:SetSize(left, right)
-		self.cursor:SetPoint("CENTER", top, bottom)
-		self.cursor:SetScale(size / 32)
-	else
-		self.cursor:SetTexture(texture)
-		self.cursor:SetTexCoord(left, right, top, bottom)
-		self.cursor:SetSize(size, size)
-		self.cursor:SetPoint("CENTER")
-		self.cursor:SetScale(1)
-	end
+	setTex(self.cursor, texPath, size, self.cursorFrame, left, right, top, bottom)
 	self.cursor:SetAlpha(self.pConfig.opacity)
 	self.cursor:SetVertexColor(r, g, b)
 	self.cursorFrame:SetScale(scale)
@@ -640,44 +643,40 @@ function config:setCursorSettings()
 	SetCVar("CursorFreelookStartDelta", self.pConfig.lookStartDelta)
 
 	if self.cursorPreview then
+		setTex(self.cursorPreview, texPath, size, self.previewBg, left, right, top, bottom)
 		if size * scale > 128 then
-			scale = 128 / size
-		end
-		if atlasInfo then
-			self.cursorPreview:SetTexCoord(0, 1, 0, 1)
-			self.cursorPreview:SetAtlas(texture)
-			self.cursorPreview:SetSize(left, right)
-			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
-			self.cursorPreview:SetScale(size / 32 * scale)
-		else
-			self.cursorPreview:SetTexture(texture)
-			self.cursorPreview:SetTexCoord(left, right, top, bottom)
-			self.cursorPreview:SetSize(size, size)
-			self.cursorPreview:SetPoint("CENTER", self.previewBg)
-			self.cursorPreview:SetScale(scale)
+			self.cursorPreview:SetScale(self.cursorPreview:GetScale() * 128 / size)
 		end
 		self.cursorPreview:SetAlpha(self.pConfig.opacity)
 		self.cursorPreview:SetVertexColor(r, g, b)
 	end
 
 	if self.ldbButton then
-		if atlasInfo then
+		local atlasInfo = C_Texture.GetAtlasInfo(texPath)
+		if atlasInfo or left > 1 then
 			local h = (left - 32) / 2
 			local v = (right - 32) / 2
 			local kLeft = (h - top) / left
 			local kRight = (h + top) / left
 			local kTop = (v + bottom) / right
 			local kBottom = (v - bottom) / right
-			local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
-			local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
-			texture = atlasInfo.file
-			left = atlasInfo.leftTexCoord + width * kLeft
-			right = atlasInfo.rightTexCoord - width * kRight
-			top = atlasInfo.topTexCoord + height * kTop
-			bottom = atlasInfo.bottomTexCoord - height * kBottom
+			if atlasInfo then
+				local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
+				local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
+				texPath = atlasInfo.file
+				left = atlasInfo.leftTexCoord + width * kLeft
+				right = atlasInfo.rightTexCoord - width * kRight
+				top = atlasInfo.topTexCoord + height * kTop
+				bottom = atlasInfo.bottomTexCoord - height * kBottom
+			else
+				left = kLeft
+				right = 1 - kRight
+				top = kTop
+				bottom = 1 - kBottom
+			end
 		end
 
-		self.ldbButton.icon = texture
+		self.ldbButton.icon = texPath
 		self.ldbButton.iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1}
 	end
 end
@@ -685,7 +684,6 @@ end
 
 -- ADD CATEGORY
 local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
-category.ID = addon
 -- layout:AddAnchorPoint("TOPLEFT", -12, 8)
 -- layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
 Settings.RegisterAddOnCategory(category)
@@ -697,7 +695,7 @@ function config:openConfig()
 		if InCombatLockdown() then return end
 		HideUIPanel(SettingsPanel)
 	else
-		Settings.OpenToCategory(addon, true)
+		Settings.OpenToCategory(category:GetID(), addon)
 	end
 end
 
