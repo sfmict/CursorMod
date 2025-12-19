@@ -25,9 +25,9 @@ config.textures = {
 	"Interface/AddOns/CursorMod/texture/point-ghostly",
 	{"talents-search-notonactionbar", 84, 84, -2, 3},
 	{"talents-search-notonactionbarhidden", 84, 84, -2, 3},
-	{"Interface/AddOns/CursorMod/texture/midnight-glow.png", 64, 64, 0, 0},
+	{"Interface/AddOns/CursorMod/texture/midnight-glow.png", 64, 64, -1.75, 1.75},
 	"Interface/AddOns/CursorMod/texture/midnight-inverse.png",
-	{"Interface/AddOns/CursorMod/texture/midnight-inverse-glow.png", 64, 64, 0, 0},
+	{"Interface/AddOns/CursorMod/texture/midnight-inverse-glow.png", 64, 64, -1.75, 1.75},
 }
 
 
@@ -643,10 +643,8 @@ function config:setCursorSettings()
 	SetCVar("CursorFreelookStartDelta", self.pConfig.lookStartDelta)
 
 	if self.cursorPreview then
-		setTex(self.cursorPreview, texPath, size, self.previewBg, left, right, top, bottom)
-		if size * scale > 128 then
-			self.cursorPreview:SetScale(self.cursorPreview:GetScale() * 128 / size)
-		end
+		if size * scale > 128 then scale = 128 / size end
+		setTex(self.cursorPreview, texPath, size * scale, self.previewBg, left, right, top, bottom)
 		self.cursorPreview:SetAlpha(self.pConfig.opacity)
 		self.cursorPreview:SetVertexColor(r, g, b)
 	end
