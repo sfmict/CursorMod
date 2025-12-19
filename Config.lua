@@ -614,8 +614,8 @@ end
 
 
 function config:setCursorSettings()
-	local size = self.sizes[self.pConfig.size] or 32
 	local scale = self.autoScale or self.pConfig.scale
+	local size = (self.sizes[self.pConfig.size] or 32) * scale
 	local texPath, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
 
 	local r, g, b
@@ -628,8 +628,7 @@ function config:setCursorSettings()
 	setTex(self.cursor, texPath, size, self.cursorFrame, left, right, top, bottom)
 	self.cursor:SetAlpha(self.pConfig.opacity)
 	self.cursor:SetVertexColor(r, g, b)
-	self.cursorFrame:SetScale(scale)
-	self.cursorFrame.scale = scale * UIParent:GetScale()
+	self.cursorFrame.scale = UIParent:GetScale()
 	self.cursorFrame:SetSize(size, size)
 
 	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
@@ -643,8 +642,8 @@ function config:setCursorSettings()
 	SetCVar("CursorFreelookStartDelta", self.pConfig.lookStartDelta)
 
 	if self.cursorPreview then
-		if size * scale > 128 then scale = 128 / size end
-		setTex(self.cursorPreview, texPath, size * scale, self.previewBg, left, right, top, bottom)
+		if size > 128 then size = 128 end
+		setTex(self.cursorPreview, texPath, size, self.previewBg, left, right, top, bottom)
 		self.cursorPreview:SetAlpha(self.pConfig.opacity)
 		self.cursorPreview:SetVertexColor(r, g, b)
 	end
