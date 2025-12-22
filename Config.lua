@@ -37,6 +37,7 @@ config.textures = {
 		{"Interface/cursor/UICursor2x", 1/512, 97/512, 131/256, 227/256, glow, outline},
 		{"Interface/cursor/UICursor2x", 1/512, 129/512, 1/256, 129/256, glow, outline},
 	},
+	{"Interface/AddOns/CursorMod/texture/midnight-inverse.png", 32, 32, 0, 0, glow, outline},
 }
 
 
@@ -354,12 +355,8 @@ config:SetScript("OnShow", function(self)
 		self:refresh()
 		self.sizeCombobox:SetEnabled(isCursor)
 		self.changeCursorSize:SetEnabled(isCursor)
-		self.scaleSlider:SetEnabled(not self.pConfig.autoScale and isCursor)
 		self.autoScaleCheckbox:SetEnabled(isCursor)
 	end
-	self.opacityKey = "opacity"
-	self.colorKey = "color"
-	self.useClassColorKey = "useClassColor"
 
 	self.outlineBtn = CreateFrame("BUTTON", nil, self, "CursorModTextureButtonTemplate")
 	self.outlineBtn:SetSize(22, 22)
@@ -372,7 +369,6 @@ config:SetScript("OnShow", function(self)
 	self.cursorBtn:SetSize(22, 22)
 	self.cursorBtn:SetPoint("RIGHT", self.outlineBtn, "LEFT", -1, 0)
 	self.cursorBtn:SetScript("OnClick", controlBtnClick)
-	self.cursorBtn.check:Show()
 
 	self.glowBtn = CreateFrame("BUTTON", nil, self, "CursorModTextureButtonTemplate")
 	self.glowBtn:SetSize(22, 22)
@@ -598,7 +594,7 @@ config:SetScript("OnShow", function(self)
 		cursorDelta:Init(self.pConfig.lookStartDelta, options.minValue, options.maxValue, options.steps, options.formatters)
 		cursorDelta.RightText:SetText(self.pConfig.lookStartDelta)
 	end
-	self:refresh()
+	self.cursorBtn:Click()
 
 	-- SET SETTINGS
 	self:setCursorSettings()
@@ -644,7 +640,7 @@ function config:getTexInfo(index)
 		end
 		return unpack(texture)
 	else
-		return texture, 0, 1, 0, 1
+		return texture, 0,1,0,1
 	end
 end
 
@@ -658,13 +654,13 @@ local function setTex(tex, rFrame, size, path, l,r,t,b,w,h,x,y)
 	end
 	if l > 1 then
 		w,h,x,y = l,r,t,b
-		l,r,t,b = 0, 1, 0, 1
+		l,r,t,b = 0,1,0,1
 	end
-	tex:SetTexCoord(l, r, t, b)
+	tex:SetTexCoord(l,r,t,b)
 	tex:ClearAllPoints()
-	tex:SetPoint("CENTER", rFrame, x, y)
+	tex:SetPoint("CENTER", rFrame, x,y)
 	if w then
-		tex:SetSize(w, h)
+		tex:SetSize(w,h)
 		tex:SetScale(size / 32)
 	else
 		tex:SetSize(size, size)
