@@ -542,7 +542,7 @@ config:SetScript("OnShow", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 		config.pConfig.showAlways = checked
-		config:setShownAlways()
+		config:setShowAlways()
 	end)
 
 	-- CursorFreelookStartDelta
@@ -637,11 +637,11 @@ function config:setCombatTracking()
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
 		self.cursorFrame[3] = false
 	end
-	self:setShownAlways()
+	self:setShowAlways()
 end
 
 
-function config:setShownAlways()
+function config:setShowAlways()
 	if self.pConfig.showAlways then
 		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_LOOKING")
 		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_TURNING")

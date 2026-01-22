@@ -19,10 +19,8 @@ end)
 
 local function show(n)
 	cursorFrame[n] = false
-	if cursorFrame[3] then return end
-	if n ~= 3 or config.pConfig.showAlways then
-		cursorFrame:Show()
-	end
+	if cursorFrame[3] or cursorFrame[1] and cursorFrame[2] and not config.pConfig.showAlways then return end
+	cursorFrame:Show()
 end
 
 
