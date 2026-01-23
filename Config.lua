@@ -1,7 +1,7 @@
-local addon, L = ...
-local config = CreateFrame("FRAME", "CursorModConfig", InterfaceOptionsFramePanelContainer)
+local addon, ns = ...
+local L = ns.L
+local config = CreateFrame("FRAME", "CursorModConfig")
 config:Hide()
-config.name = addon
 
 
 config.textures = {
@@ -10,6 +10,25 @@ config.textures = {
 	"Interface/cursor/unablepoint",
 	"Interface/AddOns/CursorMod/texture/point-inverse",
 	"Interface/AddOns/CursorMod/texture/point-ghostly",
+	{"talents-search-notonactionbar", 84, 84, -2, 3},
+	{"talents-search-notonactionbarhidden", 84, 84, -2, 3},
+}
+
+local customAtlases = {
+	["talents-search-notonactionbar"] = {
+		["file"] = "Interface/AddOns/CursorMod/texture/talents",
+		["rightTexCoord"] = 0.36865234375,
+		["topTexCoord"] = 0.8017578125,
+		["leftTexCoord"] = 0.30712890625,
+		["bottomTexCoord"] = 0.9248046875,
+	},
+	["talents-search-notonactionbarhidden"] = {
+		["file"] = "Interface/AddOns/CursorMod/texture/talents",
+		["rightTexCoord"] = 0.43212890625,
+		["topTexCoord"] = 0.1708984375,
+		["leftTexCoord"] = 0.37060546875,
+		["bottomTexCoord"] = 0.2939453125,
+	},
 }
 
 
@@ -22,40 +41,198 @@ function config:ADDON_LOADED(addonName)
 	if addonName == addon then
 		self:UnregisterEvent("ADDON_LOADED")
 		self.ADDON_LOADED = nil
+		self.sizes = {[0] = 32, 48, 64, 96, 128}
 
+		CursorModDBChar = CursorModDBChar or {}
+		self.charDB = CursorModDBChar
 		CursorModDB = CursorModDB or {}
 		self.globalDB = CursorModDB
-		self.globalDB.config = self.globalDB.config or {}
-		self.config = self.globalDB.config
-		self.config.texPoint = self.config.texPoint or 1
-		if self.config.size == nil then
-			local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
-			if cursorSizePreferred == -1 then cursorSizePreferred = 0 end
-			self.config.size = cursorSizePreferred
-		end
-		if type(self.config.autoScale) ~= "boolean" then
-			self.config.autoScale = true
-		end
-		self.config.scale = self.config.scale or 1
-		self.config.opacity = self.config.opacity or 1
-		self.config.color = self.config.color or {1, 1, 1}
+		self.globalDB.profiles = self.globalDB.profiles or {
+			{name = L["Profile"].." 1", isDefault = true}
+		}
+		self.profiles = self.globalDB.profiles
 
-		self.sizes = {[0] = 32, 48, 64, 96, 128}
+		for i = 1, #self.profiles do
+			self:checkProfile(self.profiles[i])
+		end
+
+		if self.globalDB.config then
+			local config = self.profiles[1].config
+			for k, v in pairs(self.globalDB.config) do
+				config[k] = v
+			end
+			self.globalDB.config = nil
+		end
+
 		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
-		self:setAutoScale()
-		self:setCombatTracking()
+		self:setProfile()
 	end
 end
 
 
+function config:checkProfile(profile)
+	profile.config = profile.config or {}
+	profile.config.texPoint = profile.config.texPoint or 1
+	if not self.sizes[profile.config.size] then
+		local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
+		if not self.sizes[cursorSizePreferred] then cursorSizePreferred = 0 end
+		profile.config.size = cursorSizePreferred
+	end
+	if type(profile.config.autoScale) ~= "boolean" then
+		profile.config.autoScale = true
+	end
+	profile.config.scale = profile.config.scale or 1
+	profile.config.opacity = profile.config.opacity or 1
+	profile.config.color = profile.config.color or {1, 1, 1}
+	profile.config.lookStartDelta = profile.config.lookStartDelta or tonumber(GetCVar("CursorFreelookStartDelta")) or .001
+end
+
+
+function config:setProfile(profileName)
+	if profileName then
+		self.charDB.currentProfileName = profileName
+	end
+	local currentProfileName, currentProfile, default = self.charDB.currentProfileName
+
+	for i = 1, #self.profiles do
+		local profile = self.profiles[i]
+		if profile.name == currentProfileName then
+			currentProfile = profile
+			break
+		end
+		if profile.isDefault then
+			default = profile
+		end
+	end
+
+	if not currentProfile then
+		self.charDB.currentProfileName = nil
+		currentProfile = default
+	end
+	self.currentProfile = currentProfile
+	self.pConfig = currentProfile.config
+
+	self:setAutoScale()
+	self:setCombatTracking()
+	if self.refresh then self:refresh() end
+end
+
+
+local function copyTable(t)
+	local n = {}
+	for k, v in pairs(t) do
+		n[k] = type(v) == "table" and copyTable(v) or v
+	end
+	return n
+end
+
+
+function config:createProfile(copy)
+	local dialog = StaticPopup_Show(self.addonName.."NEW_PROFILE", nil, nil, function(popup)
+		local text = popup.editBox:GetText()
+		if text and text ~= "" then
+			for _, profile in ipairs(config.profiles) do
+				if profile.name == text then
+					self.lastProfileName = text
+					StaticPopup_Show(self.addonName.."PROFILE_EXISTS", nil, nil, copy)
+					return
+				end
+			end
+			local profile = copy and copyTable(self.currentProfile) or {}
+			profile.name = text
+			profile.isDefault = nil
+			self:checkProfile(profile)
+			tinsert(self.profiles, profile)
+			sort(self.profiles, function(a, b) return a.name < b.name end)
+			self:setProfile(text)
+		end
+	end)
+	if dialog and self.lastProfileName then
+		dialog.editBox:SetText(self.lastProfileName)
+		dialog.editBox:HighlightText()
+		self.lastProfileName = nil
+	end
+end
+
+
+function config:removeProfile(profileName)
+	StaticPopup_Show(self.addonName.."DELETE_PROFILE", NORMAL_FONT_COLOR:WrapTextInColorCode(profileName), nil, function()
+		for i, profile in ipairs(config.profiles) do
+			if profile.name == profileName then
+				tremove(config.profiles, i)
+				if profile.isDefault then
+					config.profiles[1].isDefault = true
+				end
+				break
+			end
+		end
+		if self.currentProfile.name == profileName then
+			self:setProfile()
+		end
+	end)
+end
+
+
 config:SetScript("OnShow", function(self)
+	self:SetScript("OnShow", function(self)
+		self:SetPoint("TOPLEFT", -12, 8)
+		self:refresh()
+	end)
+	self:SetPoint("TOPLEFT", -12, 8)
+
+	local lsfdd = LibStub("LibSFDropDown-1.5")
+
+	self.addonName = ("%s_ADDON_"):format(addon:upper())
+	StaticPopupDialogs[self.addonName.."NEW_PROFILE"] = {
+		text = addon..": "..L["New profile"],
+		button1 = ACCEPT,
+		button2 = CANCEL,
+		hasEditBox = 1,
+		maxLetters = 48,
+		editBoxWidth = 350,
+		hideOnEscape = 1,
+		whileDead = 1,
+		OnAccept = function(self, cb) self:Hide() cb(self) end,
+		EditBoxOnEnterPressed = function(self)
+			StaticPopup_OnClick(self:GetParent(), 1)
+		end,
+		EditBoxOnEscapePressed = function(self)
+			self:GetParent():Hide()
+		end,
+		OnShow = function(self)
+			self.editBox:SetText(UnitName("player").." - "..GetRealmName())
+			self.editBox:HighlightText()
+		end,
+	}
+	local function profileExistsAccept(popup, data)
+		if not popup then return end
+		popup:Hide()
+		config:createProfile(data)
+	end
+	StaticPopupDialogs[self.addonName.."PROFILE_EXISTS"] = {
+		text = addon..": "..L["A profile with the same name exists."],
+		button1 = OKAY,
+		hideOnEscape = 1,
+		whileDead = 1,
+		OnAccept = profileExistsAccept,
+		OnCancel = profileExistsAccept,
+	}
+	StaticPopupDialogs[self.addonName.."DELETE_PROFILE"] = {
+		text = addon..": "..L["Are you sure you want to delete profile %s?"],
+		button1 = DELETE,
+		button2 = CANCEL,
+		hideOnEscape = 1,
+		whileDead = 1,
+		OnAccept = function(self, cb) self:Hide() cb() end,
+	}
+
 	-- ADDON INFO
 	local info = self:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	info:SetPoint("TOPRIGHT", -16, 16)
+	info:SetPoint("TOPLEFT", 40, 20)
 	info:SetTextColor(.5, .5, .5, 1)
 	info:SetJustifyH("RIGHT")
-	info:SetText(("%s %s: %s"):format(GetAddOnMetadata(addon, "Version"), L["author"], GetAddOnMetadata(addon, "Author")))
+	info:SetText(("%s %s: %s"):format(C_AddOns.GetAddOnMetadata(addon, "Version"), L["author"], C_AddOns.GetAddOnMetadata(addon, "Author")))
 
 	-- TITLE
 	local title = self:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -63,130 +240,204 @@ config:SetScript("OnShow", function(self)
 	title:SetJustifyH("LEFT")
 	title:SetText(L["%s Configuration"]:format(addon))
 
+	-- PROFILES COMBOBOX
+	local profilesCombobox = lsfdd:CreateStretchButton(config, 150, 22)
+	profilesCombobox:SetPoint("TOPRIGHT", -16, -12)
+
+	profilesCombobox:ddSetInitFunc(function(self, level)
+		local info = {}
+
+		if level == 1 then
+			local function removeProfile(btn)
+				config:removeProfile(btn.value)
+			end
+
+			local function selectProfile(btn)
+				config:setProfile(btn.value)
+			end
+
+			info.list = {}
+			for i, profile in ipairs(config.profiles) do
+				local subInfo = {
+					text = profile.isDefault and profile.name.." "..DARKGRAY_COLOR:WrapTextInColorCode(DEFAULT) or profile.name,
+					value = profile.name,
+					checked = profile.name == config.currentProfile.name,
+					func = selectProfile,
+				}
+				if #config.profiles > 1 then
+					subInfo.remove = removeProfile
+				end
+				tinsert(info.list, subInfo)
+			end
+			self:ddAddButton(info, level)
+			info.list = nil
+
+			self:ddAddSeparator(level)
+
+			info.keepShownOnClick = true
+			info.notCheckable = true
+			info.hasArrow = true
+			info.text = L["New profile"]
+			self:ddAddButton(info, level)
+
+			if not config.currentProfile.isDefault then
+				info.keepShownOnClick = nil
+				info.hasArrow = nil
+				info.text = L["Set as default"]
+				info.func = function()
+					for _, profile in ipairs(config.profiles) do
+						profile.isDefault = nil
+					end
+					config.currentProfile.isDefault = true
+				end
+				self:ddAddButton(info, level)
+			end
+		else
+			info.notCheckable = true
+
+			info.text = L["Create"]
+			info.func = function() config:createProfile() end
+			self:ddAddButton(info, level)
+
+			info.text = L["Copy current"]
+			info.func = function() config:createProfile(true) end
+			self:ddAddButton(info, level)
+		end
+	end)
+
+	-- PROFILES TEXT
+	local profilesText = config:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	profilesText:SetPoint("RIGHT", profilesCombobox, "LEFT", -5, 0)
+	profilesText:SetText(L["Profile"])
+
 	-- PREVIEW BACKGROUND
-	local previewBg = self:CreateTexture(nil, "BACKGROUND")
-	previewBg:SetTexture("Interface/ChatFrame/ChatFrameBackground")
-	previewBg:SetVertexColor(.1, .1, .1, .5)
-	previewBg:SetSize(128, 128)
-	previewBg:SetPoint("TOPLEFT", 16, -110)
+	self.previewBg = self:CreateTexture(nil, "BACKGROUND")
+	self.previewBg:SetTexture("Interface/ChatFrame/ChatFrameBackground")
+	self.previewBg:SetVertexColor(.1, .1, .1, .5)
+	self.previewBg:SetSize(128, 128)
+	self.previewBg:SetPoint("TOPLEFT", 16, -110)
 
 	-- PREVIEW CURSOR
-	local cursorPreview = self:CreateTexture(nil, "ARTWORK")
-	self.cursorPreview = cursorPreview
-	cursorPreview:SetPoint("CENTER", previewBg)
+	self.cursorPreview = self:CreateTexture(nil, "ARTWORK")
+	self.cursorPreview:SetPoint("CENTER", self.previewBg)
 
 	-- TEXTURE SELECT
 	local function textureBtnClick(btn)
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		self.textureBtn[self.config.texPoint].check:Hide()
+		if self.textureBtn[self.pConfig.texPoint] then
+			self.textureBtn[self.pConfig.texPoint].check:Hide()
+		end
 		btn.check:Show()
-		self.config.texPoint = btn.id
+		self.pConfig.texPoint = btn.id
 		self:setCursorSettings()
 	end
 
 	self.textureBtn = {}
-	local function createTextureButton(texPath, id)
+	local function createTextureButton(id, texPath, left, right, top, bottom)
 		local btn = CreateFrame("BUTTON", nil, self, "CursorModTextureSelectTemplate")
 
 		if id == 1 then
-			btn:SetPoint("BOTTOMLEFT", previewBg, "TOPLEFT", 0, 20)
+			btn:SetPoint("BOTTOMLEFT", self.previewBg, "TOPLEFT", 0, 20)
 		else
 			btn:SetPoint("LEFT", self.textureBtn[id - 1], "RIGHT")
 		end
 
 		btn.id = id
-		btn.icon:SetTexture(texPath)
+		if C_Texture.GetAtlasInfo(texPath) then
+			btn.icon:SetAtlas(texPath)
+			btn.icon:SetSize(left, right)
+			btn.icon:SetScale(22/32)
+			btn.icon:ClearAllPoints()
+			btn.icon:SetPoint("CENTER", top, bottom)
+		elseif customAtlases[texPath] then
+			local atlasInfo = customAtlases[texPath]
+			btn.icon:SetTexture(atlasInfo.file)
+			btn.icon:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+			btn.icon:SetSize(left, right)
+			btn.icon:SetScale(22/32)
+			btn.icon:ClearAllPoints()
+			btn.icon:SetPoint("CENTER", top, bottom)
+		else
+			btn.icon:SetTexture(texPath)
+			btn.icon:SetTexCoord(left, right, top, bottom)
+		end
 		btn:SetScript("OnClick", textureBtnClick)
 		tinsert(self.textureBtn, btn)
 	end
 
-	for i, texPath in ipairs(self.textures) do
-		createTextureButton(texPath, i)
+	for i = 1, #self.textures do
+		createTextureButton(i, self:getTexInfo(i))
 	end
 
-	self.textureBtn[self.config.texPoint].check:Show()
-
 	-- SIZE COMBOBOX
-	local sizeCombobox = CreateFrame("FRAME", "CursorModSize", self, "UIDropDownMenuTemplate")
-	sizeCombobox:SetPoint("TOPLEFT", previewBg, "TOPRIGHT", 10, 6)
+	local sizeCombobox = lsfdd:CreateButton(self)
+	sizeCombobox:SetPoint("TOPLEFT", self.previewBg, "TOPRIGHT", 30, 3)
 
-	UIDropDownMenu_Initialize(sizeCombobox, function(self, level)
-		local info = UIDropDownMenu_CreateInfo()
+	sizeCombobox:ddSetInitFunc(function(self, level)
+		local info = {}
 		for i = 0, #config.sizes do
 			local size = config.sizes[i]
-			info.checked = nil
 			info.text = size.."x"..size
 			info.value = i
-			info.func = function(self)
-				config.config.size = self.value
+			info.func = function(btn)
+				config.pConfig.size = btn.value
 				config:setCursorSettings()
-				UIDropDownMenu_SetSelectedValue(sizeCombobox, self.value)
+				self:ddSetSelectedValue(btn.value)
 			end
-			UIDropDownMenu_AddButton(info)
+			self:ddAddButton(info, level)
 		end
 	end)
-	UIDropDownMenu_SetSelectedValue(sizeCombobox, self.config.size)
-	local size = self.sizes[self.config.size]
-	UIDropDownMenu_SetText(sizeCombobox, size.."x"..size)
 
 	-- CHANGE CURSOR SIZE
 	local changeCursorSize = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
-	changeCursorSize:SetPoint("LEFT", sizeCombobox, "RIGHT", 120, 1)
+	changeCursorSize:SetPoint("LEFT", sizeCombobox, "RIGHT", 10, 0)
 	changeCursorSize.Text:SetText(L["Resize cursor"])
-	changeCursorSize:SetChecked(self.config.changeCursorSize)
 	changeCursorSize:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		config.config.changeCursorSize = checked
+		config.pConfig.changeCursorSize = checked
 		config:setCursorSettings()
 	end)
 
 	-- SCALE
-	local scaleSlider = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
+	local scaleSlider = CreateFrame("FRAME", nil, self, "CursorModSliderTemplate")
 	self.scaleSlider = scaleSlider
-	scaleSlider:SetPoint("TOPLEFT", sizeCombobox, "BOTTOMLEFT", 20, -15)
-	scaleSlider:SetMinMaxValues(.1, 2)
+	scaleSlider:SetPoint("TOPLEFT", sizeCombobox, "BOTTOMLEFT", 0, -15)
 	scaleSlider.text:SetText(L["Scale"])
-	local scale = math.floor(self.config.scale * 100 + .5) / 100
-	scaleSlider:SetValue(scale)
-	scaleSlider.label:SetText(scale)
-	scaleSlider:SetScript("OnValueChanged", function(self, value)
+	scaleSlider.RightText:Show()
+	scaleSlider.OnSliderValueChanged = function(self, value)
 		value = math.floor(value * 100 + .5) / 100
-		config.config.scale = value
+		config.pConfig.scale = value
 		config:setCursorSettings()
-		self.label:SetText(value)
-		self:SetValue(value)
-	end)
-	scaleSlider:SetEnabled(not self.config.autoScale)
+		self.RightText:SetText(value)
+	end
+	scaleSlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, scaleSlider.OnSliderValueChanged, scaleSlider)
 
 	-- AUTO SCALE
-	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "OptionsBaseCheckButtonTemplate")
+	local autoScaleCheckbox = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonArtTemplate")
 	autoScaleCheckbox:SetPoint("RIGHT", scaleSlider, "LEFT", 0, 0)
 	autoScaleCheckbox.tooltipOwnerPoint = "ANCHOR_TOP"
 	autoScaleCheckbox.tooltipText = L["Autoscaling"]
-	autoScaleCheckbox:SetChecked(self.config.autoScale)
 	autoScaleCheckbox:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 		scaleSlider:SetEnabled(not checked)
-		config.config.autoScale = checked
+		config.pConfig.autoScale = checked
 		config:setAutoScale()
 	end)
 
 	-- OPACITY
 	local opacitySlider = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
 	opacitySlider:SetPoint("TOPLEFT", scaleSlider, "BOTTOMLEFT", 0, -15)
-	opacitySlider:SetMinMaxValues(.1, 1)
 	opacitySlider.text:SetText(L["Opacity"])
-	opacitySlider:SetValue(self.config.opacity)
-	opacitySlider.label:SetText(self.config.opacity)
-	opacitySlider:SetScript("OnValueChanged", function(self, value)
+	opacitySlider.RightText:Show()
+	opacitySlider.OnSliderValueChanged = function(self, value)
 		value = math.floor(value * 10 + .5) / 10
-		config.config.opacity = value
+		config.pConfig.opacity = value
 		config:setCursorSettings()
-		self.label:SetText(value)
-		self:SetValue(value)
-	end)
+		self.RightText:SetText(value)
+	end
+	opacitySlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, opacitySlider.OnSliderValueChanged, opacitySlider)
 
 	-- COLOR
 	local colorBtn =  CreateFrame("BUTTON", nil, self)
@@ -194,21 +445,24 @@ config:SetScript("OnShow", function(self)
 	colorBtn:SetPoint("TOPLEFT", opacitySlider, "BOTTOMLEFT", -3, -15)
 	colorBtn:SetNormalTexture("Interface/ChatFrame/ChatFrameColorSwatch")
 	local colorTex = colorBtn:GetNormalTexture()
-	colorTex:SetVertexColor(unpack(self.config.color))
 
 	colorBtn.swatchFunc = function()
 		colorTex:SetVertexColor(ColorPickerFrame:GetColorRGB())
-		config.config.color = {ColorPickerFrame:GetColorRGB()}
+		config.pConfig.color = {ColorPickerFrame:GetColorRGB()}
 		config:setCursorSettings()
 	end
 	colorBtn.cancelFunc = function(color)
-		config.config.color = {color.r, color.g, color.b}
+		config.pConfig.color = {color.r, color.g, color.b}
 		colorTex:SetVertexColor(color.r, color.g, color.b)
 		config:setCursorSettings()
 	end
 	colorBtn:SetScript("OnClick", function(btn)
-		btn.r, btn.g, btn.b = unpack(config.config.color)
-		OpenColorPicker(btn)
+		btn.r, btn.g, btn.b = unpack(config.pConfig.color)
+		if OpenColorPicker then
+			OpenColorPicker(btn)
+		else
+			ColorPickerFrame:SetupColorPickerAndShow(btn)
+		end
 	end)
 
 	local btnResetColor = CreateFrame("BUTTON", nil, self, "UIPanelButtonTemplate")
@@ -218,36 +472,114 @@ config:SetScript("OnShow", function(self)
 	btnResetColor:SetScript("OnClick", function()
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 		colorTex:SetVertexColor(1, 1, 1)
-		config.config.color = {1, 1, 1}
+		config.pConfig.color = {1, 1, 1}
+		config:setCursorSettings()
+	end)
+
+	-- USE CLASS COLOR
+	local useClassColor = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
+	useClassColor:SetPoint("LEFT", btnResetColor, "RIGHT", 10, 0)
+	useClassColor.Text:SetText(L["Use class color"])
+	useClassColor:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		colorBtn:SetEnabled(not checked)
+		btnResetColor:SetEnabled(not checked)
+		config.pConfig.useClassColor = checked
 		config:setCursorSettings()
 	end)
 
 	-- SHOW ONLY IN COMBAT
 	local showOnlyInCombat = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
-	showOnlyInCombat:SetPoint("TOPLEFT", previewBg, "BOTTOMLEFT", 0, -15)
+	showOnlyInCombat:SetPoint("TOPLEFT", self.previewBg, "BOTTOMLEFT", 0, -15)
 	showOnlyInCombat.Text:SetText(L["Show only in combat"])
-	showOnlyInCombat:SetChecked(self.config.showOnlyInCombat)
 	showOnlyInCombat:SetScript("OnClick", function(self)
 		local checked = self:GetChecked()
 		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-		config.config.showOnlyInCombat = checked
+		config.pConfig.showOnlyInCombat = checked
 		config:setCombatTracking()
 	end)
+
+	-- SHOW ALWAYS
+	local showAlways = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
+	showAlways:SetPoint("LEFT", showOnlyInCombat.Text, "RIGHT", 10, 1)
+	showAlways.Text:SetText(L["Show always"])
+	showAlways:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		config.pConfig.showAlways = checked
+		config:setShowAlways()
+	end)
+
+	-- CursorFreelookStartDelta
+	local cursorDelta = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
+	cursorDelta:SetPoint("TOPLEFT", showOnlyInCombat, "BOTTOMLEFT", 0, -15)
+	cursorDelta.text:SetText(L["Cursor freelook start delta"])
+	cursorDelta.RightText:Show()
+	cursorDelta.OnSliderValueChanged = function(self, value)
+		value = math.floor(value * 10000 + .5) / 10000
+		config.pConfig.lookStartDelta = value
+		config:setCursorSettings()
+		self.RightText:SetText(value)
+	end
+	cursorDelta:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, cursorDelta.OnSliderValueChanged, cursorDelta)
 
 	-- SET SETTINGS
 	self:setCursorSettings()
 
-	-- RESET ONSHOW
-	self:SetScript("OnShow", nil)
+	-- REFRESH
+	function self:refresh()
+		profilesCombobox:SetText(self.currentProfile.name)
+
+		for i = 1, #self.textureBtn do
+			self.textureBtn[i].check:Hide()
+		end
+		if self.textureBtn[self.pConfig.texPoint] then
+			self.textureBtn[self.pConfig.texPoint].check:Show()
+		end
+
+		sizeCombobox:ddSetSelectedValue(self.pConfig.size)
+		local size = self.sizes[self.pConfig.size]
+		sizeCombobox:ddSetSelectedText(size.."x"..size)
+
+		changeCursorSize:SetChecked(self.pConfig.changeCursorSize)
+
+		local value = math.floor(self.pConfig.scale * 100 + .5) / 100
+		local options = Settings.CreateSliderOptions(.1, 2, .01)
+		scaleSlider:Init(value, options.minValue, options.maxValue, options.steps, options.formatters)
+		scaleSlider.RightText:SetText(value)
+		scaleSlider:SetEnabled(not self.pConfig.autoScale)
+
+		autoScaleCheckbox:SetChecked(self.pConfig.autoScale)
+
+		options = Settings.CreateSliderOptions(.1, 1, .1)
+		opacitySlider:Init(self.pConfig.opacity, options.minValue, options.maxValue, options.steps, options.formatters)
+		opacitySlider.RightText:SetText(self.pConfig.opacity)
+
+		colorBtn:SetEnabled(not self.pConfig.useClassColor)
+		colorTex:SetVertexColor(unpack(self.pConfig.color))
+
+		btnResetColor:SetEnabled(not self.pConfig.useClassColor)
+
+		useClassColor:SetChecked(self.pConfig.useClassColor)
+
+		showOnlyInCombat:SetChecked(self.pConfig.showOnlyInCombat)
+		
+		showAlways:SetChecked(self.pConfig.showAlways)
+
+		options = Settings.CreateSliderOptions(0, .01, .0001)
+		cursorDelta:Init(self.pConfig.lookStartDelta, options.minValue, options.maxValue, options.steps, options.formatters)
+		cursorDelta.RightText:SetText(self.pConfig.lookStartDelta)
+	end
+	self:refresh()
 end)
 
 
 function config:setAutoScale()
-	if self.config.autoScale then
+	if self.pConfig.autoScale then
 		local width
 		if GetCVarBool("gxMaximize") then
-			local _, resolution = GetScreenResolutions(GetCVar("gxMonitor") + 1, true)
-			width = tonumber(resolution:match("%d+"))
+			width = C_VideoOptions.GetGameWindowSizes(GetCVar("gxMonitor"), true)[1].x
 		else
 			width = GetPhysicalScreenSize()
 		end
@@ -262,64 +594,167 @@ config.UI_SCALE_CHANGED = config.setAutoScale
 
 
 function config:setCombatTracking()
-	if self.config.showOnlyInCombat then
+	if self.pConfig.showOnlyInCombat then
 		self.cursorFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 		self.cursorFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-		self.cursor[3] = not InCombatLockdown()
+		self.cursorFrame[3] = not InCombatLockdown()
 	else
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_DISABLED")
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
-		self.cursor[3] = false
+		self.cursorFrame[3] = false
+	end
+	self:setShowAlways()
+end
+
+
+function config:setShowAlways()
+	if self.pConfig.showAlways then
+		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_LOOKING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_TURNING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_LOOKING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_TURNING")
+		self.cursorFrame:SetShown(not (self.pConfig.showOnlyInCombat and self.cursorFrame[3]))
+		self.cursorFrame:SetScript("OnUpdate", self.cursorFrame:GetScript("OnShow"))
+	else
+		self.cursorFrame:SetScript("OnUpdate", nil)
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
+		self.cursorFrame:Hide()
+	end
+end
+
+
+function config:getTexInfo(index)
+	local texture = self.textures[index]
+	if type(texture) == "table" then
+		if type(texture[1]) == "table" then
+			return unpack(texture[self.pConfig.size + 1])
+		else
+			return unpack(texture)
+		end
+	else
+		return texture, 0, 1, 0, 1
 	end
 end
 
 
 function config:setCursorSettings()
-	local size = self.sizes[self.config.size]
-	local scale = self.autoScale or self.config.scale
-	self.cursor:SetTexture(self.textures[self.config.texPoint])
-	self.cursor:SetSize(size, size)
-	self.cursor:SetScale(scale)
-	self.cursor:SetAlpha(self.config.opacity)
-	self.cursor:SetVertexColor(unpack(self.config.color))
-	self.cursor.scale = scale * UIParent:GetScale()
+	local size = self.sizes[self.pConfig.size] or 32
+	local scale = self.autoScale or self.pConfig.scale
+	local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
+	local atlasInfo = texture and C_Texture.GetAtlasInfo(texture)
 
-	if self.config.changeCursorSize then
-		SetCVar("cursorSizePreferred", self.config.size)
+	local r, g, b
+	if self.pConfig.useClassColor then
+		r, g, b = GetClassColor(select(2, UnitClass("player")))
 	else
+		r, g, b = unpack(self.pConfig.color)
+	end
+
+	if atlasInfo then
+		self.cursor:SetTexCoord(0, 1, 0, 1)
+		self.cursor:SetAtlas(texture)
+		self.cursor:SetSize(left, right)
+		self.cursor:SetPoint("CENTER", top, bottom)
+		self.cursor:SetScale(size / 32)
+	elseif customAtlases[texture] then
+		local atlasInfo = customAtlases[texture]
+		self.cursor:SetTexture(atlasInfo.file)
+		self.cursor:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+		self.cursor:SetSize(left, right)
+		self.cursor:SetPoint("CENTER", top, bottom)
+		self.cursor:SetScale(size / 32)
+	else
+		self.cursor:SetTexture(texture)
+		self.cursor:SetTexCoord(left, right, top, bottom)
+		self.cursor:SetSize(size, size)
+		self.cursor:SetPoint("CENTER")
+		self.cursor:SetScale(1)
+	end
+	self.cursor:SetAlpha(self.pConfig.opacity)
+	self.cursor:SetVertexColor(r, g, b)
+	self.cursorFrame:SetScale(scale)
+	self.cursorFrame.scale = scale * UIParent:GetScale()
+	self.cursorFrame:SetSize(size, size)
+
+	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
+	if self.pConfig.changeCursorSize then
+		if cursorSizePreferred ~= self.pConfig.size then
+			SetCVar("cursorSizePreferred", self.pConfig.size)
+		end
+	elseif cursorSizePreferred ~= -1 then
 		SetCVar("cursorSizePreferred", -1)
 	end
+	SetCVar("CursorFreelookStartDelta", self.pConfig.lookStartDelta)
 
 	if self.cursorPreview then
 		if size * scale > 128 then
 			scale = 128 / size
 		end
-		self.cursorPreview:SetTexture(self.textures[self.config.texPoint])
-		self.cursorPreview:SetSize(size, size)
-		self.cursorPreview:SetScale(scale)
-		self.cursorPreview:SetAlpha(self.config.opacity)
-		self.cursorPreview:SetVertexColor(unpack(self.config.color))
+		if atlasInfo then
+			self.cursorPreview:SetTexCoord(0, 1, 0, 1)
+			self.cursorPreview:SetAtlas(texture)
+			self.cursorPreview:SetSize(left, right)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
+			self.cursorPreview:SetScale(size / 32 * scale)
+		elseif customAtlases[texture] then
+			local atlasInfo = customAtlases[texture]
+			self.cursorPreview:SetTexture(atlasInfo.file)
+			self.cursorPreview:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+			self.cursorPreview:SetSize(left, right)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg, top, bottom)
+			self.cursorPreview:SetScale(size / 32 * scale)
+		else
+			self.cursorPreview:SetTexture(texture)
+			self.cursorPreview:SetTexCoord(left, right, top, bottom)
+			self.cursorPreview:SetSize(size, size)
+			self.cursorPreview:SetPoint("CENTER", self.previewBg)
+			self.cursorPreview:SetScale(scale)
+		end
+		self.cursorPreview:SetAlpha(self.pConfig.opacity)
+		self.cursorPreview:SetVertexColor(r, g, b)
 	end
 
 	if self.ldbButton then
-		self.ldbButton.icon = self.textures[self.config.texPoint]
+		atlasInfo = atlasInfo or customAtlases[texture]
+		if atlasInfo then
+			local h = (left - 32) / 2
+			local v = (right - 32) / 2
+			local kLeft = (h - top) / left
+			local kRight = (h + top) / left
+			local kTop = (v + bottom) / right
+			local kBottom = (v - bottom) / right
+			local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
+			local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
+			texture = atlasInfo.file
+			left = atlasInfo.leftTexCoord + width * kLeft
+			right = atlasInfo.rightTexCoord - width * kRight
+			top = atlasInfo.topTexCoord + height * kTop
+			bottom = atlasInfo.bottomTexCoord - height * kBottom
+		end
+
+		self.ldbButton.icon = texture
+		self.ldbButton.iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1}
 	end
 end
 
 
 -- ADD CATEGORY
-InterfaceOptions_AddCategory(config)
+local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
+-- layout:AddAnchorPoint("TOPLEFT", -12, 8)
+-- layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
+Settings.RegisterAddOnCategory(category)
 
 
 -- OPEN CONFIG
 function config:openConfig()
-	if InterfaceOptionsFrameAddOns:IsVisible() and self:IsVisible() then
-		InterfaceOptionsFrame:Hide()
+	if InCombatLockdown() then return end
+	if SettingsPanel:IsVisible() and self:IsVisible() then
+		HideUIPanel(SettingsPanel)
 	else
-		InterfaceOptionsFrame_OpenToCategory(addon)
-		if not InterfaceOptionsFrameAddOns:IsVisible() then
-			InterfaceOptionsFrame_OpenToCategory(addon)
-		end
+		Settings.OpenToCategory(category:GetID(), addon)
 	end
 end
 
@@ -332,24 +767,43 @@ SlashCmdList["CURSORMODCONFIG"] = function() config:openConfig() end
 function config:PLAYER_LOGIN()
 	self:UnregisterEvent("PLAYER_LOGIN")
 	self.PLAYER_LOGIN = nil
-	local ldb = LibStub and LibStub("LibDataBroker-1.1", true)
+	local ldb = LibStub("LibDataBroker-1.1", true)
 	if ldb then
-		local r, g, b = unpack(config.config.color)
+		local updateFrame = CreateFrame("FRAME")
+		local r, g, b = unpack(self.pConfig.color)
 		local r2, g2, b2 = 1, 1, 1
-		config.ldbButton = ldb:NewDataObject("CursorMod", {
+		local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
+		local atlasInfo = texture and C_Texture.GetAtlasInfo(texture) or customAtlases[texture]
+		if atlasInfo then
+			local h = (left - 32) / 2
+			local v = (right - 32) / 2
+			local kLeft = (h - top) / left
+			local kRight = (h + top) / left
+			local kTop = (v + bottom) / right
+			local kBottom = (v - bottom) / right
+			local width = atlasInfo.rightTexCoord - atlasInfo.leftTexCoord
+			local height = atlasInfo.bottomTexCoord - atlasInfo.topTexCoord
+			texture = atlasInfo.file
+			left = atlasInfo.leftTexCoord + width * kLeft
+			right = atlasInfo.rightTexCoord - width * kRight
+			top = atlasInfo.topTexCoord + height * kTop
+			bottom = atlasInfo.bottomTexCoord - height * kBottom
+		end
+
+		self.ldbButton = ldb:NewDataObject("CursorMod", {
 			type = "launcher",
 			text = "CursorMod",
-			icon = config.textures[config.config.texPoint],
-			iconCoords = {0, .9, 0, .9},
+			icon = texture,
+			iconCoords = {left, right - (right - left) * .1, top, bottom - (bottom - top) * .1},
 			iconR = r,
 			iconG = g,
 			iconB = b,
 			OnTooltipShow = function(tooltip)
-				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, GetAddOnMetadata(addon, "Version")))
+				tooltip:SetText(("%s (|cffff7f3f%s|r)"):format(addon, C_AddOns.GetAddOnMetadata(addon, "Version")))
 			end,
-			OnClick = function() config:openConfig() end,
+			OnClick = function() self:openConfig() end,
 			OnEnter = function()
-				config.cursorFrame:SetScript("OnUpdate", function(_, elaps)
+				updateFrame:SetScript("OnUpdate", function(_, elaps)
 					elaps = elaps / 2
 					if r > 1 then r2 = -1
 					elseif r < 0 then r2 = 1 end
@@ -360,13 +814,13 @@ function config:PLAYER_LOGIN()
 					if b > 1 then b2 = -1
 					elseif b < 0 then b2 = 1 end
 					b = b + b2 * (elaps + elaps / random(3))
-					config.ldbButton.iconR = r
-					config.ldbButton.iconG = g
-					config.ldbButton.iconB = b
+					self.ldbButton.iconR = r
+					self.ldbButton.iconG = g
+					self.ldbButton.iconB = b
 				end)
 			end,
 			OnLeave = function()
-				config.cursorFrame:SetScript("OnUpdate", nil)
+				updateFrame:SetScript("OnUpdate", nil)
 			end,
 		})
 	end
