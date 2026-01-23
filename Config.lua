@@ -67,11 +67,6 @@ function config:ADDON_LOADED(addonName)
 		hooksecurefunc(UIParent, "SetScale", function() self:setAutoScale() end)
 		self:RegisterEvent("UI_SCALE_CHANGED")
 		self:setProfile()
-
-		self.cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
-		self.cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
-		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
-		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
 	end
 end
 
@@ -329,7 +324,9 @@ config:SetScript("OnShow", function(self)
 	-- TEXTURE SELECT
 	local function textureBtnClick(btn)
 		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-		self.textureBtn[self.pConfig.texPoint].check:Hide()
+		if self.textureBtn[self.pConfig.texPoint] then
+			self.textureBtn[self.pConfig.texPoint].check:Hide()
+		end
 		btn.check:Show()
 		self.pConfig.texPoint = btn.id
 		self:setCursorSettings()
@@ -503,6 +500,17 @@ config:SetScript("OnShow", function(self)
 		config:setCombatTracking()
 	end)
 
+	-- SHOW ALWAYS
+	local showAlways = CreateFrame("CheckButton", nil, self, "CursorModCheckButtonTemplate")
+	showAlways:SetPoint("LEFT", showOnlyInCombat.Text, "RIGHT", 10, 1)
+	showAlways.Text:SetText(L["Show always"])
+	showAlways:SetScript("OnClick", function(self)
+		local checked = self:GetChecked()
+		PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		config.pConfig.showAlways = checked
+		config:setShowAlways()
+	end)
+
 	-- CursorFreelookStartDelta
 	local cursorDelta = CreateFrame("SLIDER", nil, self, "CursorModSliderTemplate")
 	cursorDelta:SetPoint("TOPLEFT", showOnlyInCombat, "BOTTOMLEFT", 0, -15)
@@ -526,7 +534,9 @@ config:SetScript("OnShow", function(self)
 		for i = 1, #self.textureBtn do
 			self.textureBtn[i].check:Hide()
 		end
-		self.textureBtn[self.pConfig.texPoint].check:Show()
+		if self.textureBtn[self.pConfig.texPoint] then
+			self.textureBtn[self.pConfig.texPoint].check:Show()
+		end
 
 		sizeCombobox:ddSetSelectedValue(self.pConfig.size)
 		local size = self.sizes[self.pConfig.size]
@@ -554,6 +564,8 @@ config:SetScript("OnShow", function(self)
 		useClassColor:SetChecked(self.pConfig.useClassColor)
 
 		showOnlyInCombat:SetChecked(self.pConfig.showOnlyInCombat)
+		
+		showAlways:SetChecked(self.pConfig.showAlways)
 
 		options = Settings.CreateSliderOptions(0, .01, .0001)
 		cursorDelta:Init(self.pConfig.lookStartDelta, options.minValue, options.maxValue, options.steps, options.formatters)
@@ -591,6 +603,26 @@ function config:setCombatTracking()
 		self.cursorFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
 		self.cursorFrame[3] = false
 	end
+	self:setShowAlways()
+end
+
+
+function config:setShowAlways()
+	if self.pConfig.showAlways then
+		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_LOOKING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_TURNING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_LOOKING")
+		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_TURNING")
+		self.cursorFrame:SetShown(not (self.pConfig.showOnlyInCombat and self.cursorFrame[3]))
+		self.cursorFrame:SetScript("OnUpdate", self.cursorFrame:GetScript("OnShow"))
+	else
+		self.cursorFrame:SetScript("OnUpdate", nil)
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
+		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
+		self.cursorFrame:Hide()
+	end
 end
 
 
@@ -612,7 +644,7 @@ function config:setCursorSettings()
 	local size = self.sizes[self.pConfig.size] or 32
 	local scale = self.autoScale or self.pConfig.scale
 	local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
-	local atlasInfo = C_Texture.GetAtlasInfo(texture)
+	local atlasInfo = texture and C_Texture.GetAtlasInfo(texture)
 
 	local r, g, b
 	if self.pConfig.useClassColor then
@@ -711,7 +743,6 @@ end
 
 -- ADD CATEGORY
 local category, layout = Settings.RegisterCanvasLayoutCategory(config, addon)
-category.ID = addon
 -- layout:AddAnchorPoint("TOPLEFT", -12, 8)
 -- layout:AddAnchorPoint("BOTTOMRIGHT", 0, 0)
 Settings.RegisterAddOnCategory(category)
@@ -719,11 +750,12 @@ Settings.RegisterAddOnCategory(category)
 
 -- OPEN CONFIG
 function config:openConfig()
+	if InCombatLockdown() then return end
 	if SettingsPanel:IsVisible() and self:IsVisible() then
 		if InCombatLockdown() then return end
 		HideUIPanel(SettingsPanel)
 	else
-		Settings.OpenToCategory(addon, true)
+		Settings.OpenToCategory(category:GetID(), addon)
 	end
 end
 
@@ -742,7 +774,7 @@ function config:PLAYER_LOGIN()
 		local r, g, b = unpack(self.pConfig.color)
 		local r2, g2, b2 = 1, 1, 1
 		local texture, left, right, top, bottom = self:getTexInfo(self.pConfig.texPoint)
-		local atlasInfo = C_Texture.GetAtlasInfo(texture) or customAtlases[texture]
+		local atlasInfo = texture and C_Texture.GetAtlasInfo(texture) or customAtlases[texture]
 		if atlasInfo then
 			local h = (left - 32) / 2
 			local v = (right - 32) / 2
