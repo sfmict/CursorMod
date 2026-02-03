@@ -12,28 +12,28 @@ cursorFrame[1], cursorFrame[2] = true, true
 
 cursorFrame:SetScript("OnShow", function(self)
 	local x, y = GetCursorPosition()
-	local scale = cursorFrame.scale
-	cursorFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+	local scale = self.scale
+	self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, y / scale)
 end)
 
 
-local function show(n)
-	cursorFrame[n] = false
-	if cursorFrame[3] or cursorFrame[1] and cursorFrame[2] and not config.pConfig.showAlways then return end
-	cursorFrame:Show()
+function cursorFrame:show(n)
+	self[n] = false
+	if self[3] or self[1] and self[2] and not config.pConfig.showAlways then return end
+	self:Show()
 end
 
 
-local function hide(n)
-	cursorFrame[n] = true
-	if cursorFrame[1] and cursorFrame[2] or cursorFrame[3] then cursorFrame:Hide() end
+function cursorFrame:hide(n)
+	self[n] = true
+	if self[1] and self[2] or self[3] then self:Hide() end
 end
 
 
-function cursorFrame:PLAYER_STARTED_LOOKING() show(1) end
-function cursorFrame:PLAYER_STARTED_TURNING() show(2) end
-function cursorFrame:PLAYER_STOPPED_LOOKING() hide(1) end
-function cursorFrame:PLAYER_STOPPED_TURNING() hide(2) end
-function cursorFrame:PLAYER_REGEN_DISABLED() show(3) end
-function cursorFrame:PLAYER_REGEN_ENABLED() hide(3) end
+function cursorFrame:PLAYER_STARTED_LOOKING() self:show(1) end
+function cursorFrame:PLAYER_STARTED_TURNING() self:show(2) end
+function cursorFrame:PLAYER_STOPPED_LOOKING() self:hide(1) end
+function cursorFrame:PLAYER_STOPPED_TURNING() self:hide(2) end
+function cursorFrame:PLAYER_REGEN_DISABLED() self:show(3) end
+function cursorFrame:PLAYER_REGEN_ENABLED() self:hide(3) end
 cursorFrame:SetScript("OnEvent", function(self, event) self[event](self) end)
