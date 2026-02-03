@@ -645,16 +645,16 @@ function config:setShowAlways()
 	if self.pConfig.showAlways then
 		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_LOOKING")
 		self.cursorFrame:UnregisterEvent("PLAYER_STARTED_TURNING")
-		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_LOOKING")
-		self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_TURNING")
+		-- self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_LOOKING")
+		-- self.cursorFrame:UnregisterEvent("PLAYER_STOPPED_TURNING")
 		self.cursorFrame:SetShown(not (self.pConfig.showOnlyInCombat and self.cursorFrame[3]))
 		self.cursorFrame:SetScript("OnUpdate", self.cursorFrame:GetScript("OnShow"))
 	else
 		self.cursorFrame:SetScript("OnUpdate", nil)
 		self.cursorFrame:RegisterEvent("PLAYER_STARTED_LOOKING")
 		self.cursorFrame:RegisterEvent("PLAYER_STARTED_TURNING")
-		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
-		self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
+		-- self.cursorFrame:RegisterEvent("PLAYER_STOPPED_LOOKING")
+		-- self.cursorFrame:RegisterEvent("PLAYER_STOPPED_TURNING")
 		self.cursorFrame:Hide()
 	end
 end
@@ -742,6 +742,7 @@ function config:setCursorSettings()
 	self:setCursorTex(self.cursorFrame, size, self.pConfig.texPoint, true)
 	self.cursorFrame:SetSize(size, size)
 	self.cursorFrame.scale = UIParent:GetScale()
+	self.cursorFrame.lookStartDeltaIsZero = self.pConfig.lookStartDelta == 0
 
 	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
 	if self.pConfig.changeCursorSize then

@@ -26,14 +26,32 @@ end
 
 function cursorFrame:hide(n)
 	self[n] = true
-	if self[1] and self[2] or self[3] then self:Hide() end
+	if self[3] or self[1] and self[2] and not config.pConfig.showAlways then self:Hide() end
 end
 
 
+hooksecurefunc("CameraOrSelectOrMoveStart", function()
+	if cursorFrame.lookStartDeltaIsZero then cursorFrame:show(1) end
+end)
+hooksecurefunc("TurnOrActionStart", function()
+	if cursorFrame.lookStartDeltaIsZero then cursorFrame:show(2) end
+end)
+hooksecurefunc("MoveAndSteerStart", function()
+	if cursorFrame.lookStartDeltaIsZero then
+		cursorFrame[1] = false
+		cursorFrame:show(2)
+	end
+end)
+hooksecurefunc("CameraOrSelectOrMoveStop", function() cursorFrame:hide(1) end)
+hooksecurefunc("TurnOrActionStop", function() cursorFrame:hide(2) end)
+hooksecurefunc("MoveAndSteerStop", function()
+	cursorFrame[1] = true
+	cursorFrame:hide(2)
+end)
 function cursorFrame:PLAYER_STARTED_LOOKING() self:show(1) end
 function cursorFrame:PLAYER_STARTED_TURNING() self:show(2) end
-function cursorFrame:PLAYER_STOPPED_LOOKING() self:hide(1) end
-function cursorFrame:PLAYER_STOPPED_TURNING() self:hide(2) end
+-- function cursorFrame:PLAYER_STOPPED_LOOKING() self:hide(1) end
+-- function cursorFrame:PLAYER_STOPPED_TURNING() self:hide(2) end
 function cursorFrame:PLAYER_REGEN_DISABLED() self:show(3) end
 function cursorFrame:PLAYER_REGEN_ENABLED() self:hide(3) end
 cursorFrame:SetScript("OnEvent", function(self, event) self[event](self) end)
