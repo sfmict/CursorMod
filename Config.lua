@@ -564,7 +564,7 @@ config:SetScript("OnShow", function(self)
 		useClassColor:SetChecked(self.pConfig.useClassColor)
 
 		showOnlyInCombat:SetChecked(self.pConfig.showOnlyInCombat)
-		
+
 		showAlways:SetChecked(self.pConfig.showAlways)
 
 		options = Settings.CreateSliderOptions(0, .01, .0001)
@@ -678,6 +678,7 @@ function config:setCursorSettings()
 	self.cursorFrame:SetScale(scale)
 	self.cursorFrame.scale = scale * UIParent:GetScale()
 	self.cursorFrame:SetSize(size, size)
+	self.cursorFrame.lookStartDeltaIsZero = self.pConfig.lookStartDelta == 0
 
 	local cursorSizePreferred = tonumber(GetCVar("cursorSizePreferred"))
 	if self.pConfig.changeCursorSize then
