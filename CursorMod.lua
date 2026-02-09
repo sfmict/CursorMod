@@ -50,8 +50,8 @@ hooksecurefunc("MoveAndSteerStop", function()
 end)
 function cursorFrame:PLAYER_STARTED_LOOKING() self:show(1) end
 function cursorFrame:PLAYER_STARTED_TURNING() self:show(2) end
--- function cursorFrame:PLAYER_STOPPED_LOOKING() self:hide(1) end
--- function cursorFrame:PLAYER_STOPPED_TURNING() self:hide(2) end
+function cursorFrame:PLAYER_STOPPED_LOOKING() self:hide(1) end
+function cursorFrame:PLAYER_STOPPED_TURNING() self:hide(2) end
 function cursorFrame:PLAYER_REGEN_DISABLED() self:show(3) end
 function cursorFrame:PLAYER_REGEN_ENABLED() self:hide(3) end
 cursorFrame:SetScript("OnEvent", function(self, event) self[event](self) end)
