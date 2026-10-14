@@ -699,7 +699,8 @@ end
 
 function config:getColor(key)
 	if self.pConfig[key and key.."UseClassColor" or "useClassColor"] then
-		return C_ClassColor.GetClassColor(select(2, UnitClass("player"))):GetRGB()
+		local _, className = UnitClass("player")
+		return C_ClassColor.GetClassColor(className):GetRGB()
 	else
 		return unpack(self.pConfig[key and key.."Color" or "color"])
 	end
