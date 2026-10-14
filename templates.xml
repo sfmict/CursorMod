@@ -1,4 +1,4 @@
-<Ui>
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<Button name="CursorModTextureButtonTemplate" virtual="true">
 		<Size x="32" y="32"/>
 		<Layers>
