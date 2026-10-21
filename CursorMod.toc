@@ -1,4 +1,4 @@
-## Interface: 120105
+## Interface: 11509, 16001, 20506, 50504, 120105
 ## Title: CursorMod
 ## Author: sfmict
 ## Version: @project-version@
@@ -21,4 +21,7 @@ embeds.xml
 locales.xml
 templates.xml
 Config.lua
+Data-Classic.lua [AllowLoadGameType classic]
+Data-Camelot.lua [AllowLoadGameType camelot] [ExcludeLoadGameType classic, standard, plunderstorm]
+Data-Mainline.lua [AllowLoadGameType mainline] [ExcludeLoadGameType camelot]
 CursorMod.lua
