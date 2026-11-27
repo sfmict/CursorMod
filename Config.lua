@@ -438,7 +438,7 @@ config:SetScript("OnShow", function(self)
 	opacitySlider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, opacitySlider.OnSliderValueChanged, opacitySlider)
 
 	-- COLOR
-	local colorBtn =  CreateFrame("BUTTON", nil, self)
+	local colorBtn = CreateFrame("BUTTON", nil, self)
 	colorBtn:SetSize(30, 30)
 	colorBtn:SetPoint("TOPLEFT", opacitySlider, "BOTTOMLEFT", -3, -15)
 	colorBtn:SetNormalTexture("Interface/ChatFrame/ChatFrameColorSwatch")

@@ -43,18 +43,18 @@ function config:setTex(tex, rFrame, size, path, l,r,t,b,w,h,x,y)
 		w,h,x,y = l,r,t,b
 		l,r,t,b = 0,1,0,1
 	end
-	tex:SetTexCoord(l,r,t,b)
 	local atlasInfo = self.getAtlasInfo(path)
 	if atlasInfo then
 		if customAtlases[path] then
 			tex:SetTexture(atlasInfo.file)
-			tex:SetTexCoord(atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord)
+			l,r,t,b = atlasInfo.leftTexCoord, atlasInfo.rightTexCoord, atlasInfo.topTexCoord, atlasInfo.bottomTexCoord
 		else
 			tex:SetAtlas(path)
 		end
 	else
 		tex:SetTexture(path)
 	end
+	tex:SetTexCoord(l,r,t,b)
 	tex:ClearAllPoints()
 	tex:SetPoint("CENTER", rFrame, x,y)
 	if w then
